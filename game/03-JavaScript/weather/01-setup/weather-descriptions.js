@@ -224,15 +224,14 @@ setup.WeatherDescriptions = {
 		}
 	},
 	warmthGapText: gap => {
-		if (gap >= 15) return "You're overheating badly in these clothes.";
-		else if (gap >= 8) return "You're sweating heavily.";
-		else if (gap >= 4) return "You're feeling quite hot.";
-		else if (gap >= 1) return "You're feeling a bit hot.";
-		else if (gap <= -15) return "No amount of clothing seems able to keep the cold out.";
-		else if (gap <= -8) return "You're shivering badly.";
-		else if (gap <= -4) return "You're feeling quite cold.";
-		else if (gap <= -1) return "You're feeling a bit chilly.";
-		else return "You feel comfortable in what you're wearing.";
+		if (gap === -Infinity) return "<span class='blue'>No amount of clothing seems able to keep the cold out.</span>";
+		else if (gap >= 8) return "<span class='red'>You're overheating badly in these clothes.</span>";
+		else if (gap >= 4) return "<span class='orange'>You're feeling quite hot.</span>";
+		else if (gap >= 1) return "<span class='orange'>You're feeling a bit hot.</span>";
+		else if (gap <= -8) return "<span class='blue'>You're shivering badly.</span>";
+		else if (gap <= -4) return "<span class='teal'>You're feeling quite cold.</span>";
+		else if (gap <= -1) return "<span class='teal'>You're feeling a bit chilly.</span>";
+		else return "<span class='green'>You feel comfortable in what you're wearing.</span>";
 	},
 	warmthComfort: () => {
 		const currentWarmth = Weather.BodyTemperature.getTotalWarmth();
