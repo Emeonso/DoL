@@ -1508,6 +1508,61 @@ function settingsObjects(type) {
 }
 window.settingsObjects = settingsObjects;
 
+/*
+	Which $options keys the general "Save Current As Default" button stores into
+	dolDefaultGeneralSettings. Derived from the settingsObjects registry rather than
+	hand-listed, so a newly added option is covered automatically instead of silently
+	being left out.
+*/
+
+/* Debug tooling and per-save tutorial state must not follow the player between playthroughs. */
+const globalDefaultOptionExclusions = ["showDebugRenderer", "showCombatTools", "tipdisable", "debugdisable"];
+
+/* Theme-owned options are stored by the theme button into dolDefaultThemeSettings; keep the two from fighting over them. */
+const themeDefaultOptions = [
+	"theme",
+	"passageMaxWidth",
+	"font",
+	"passageLineHeight",
+	"overlayLineHeight",
+	"sidebarLineHeight",
+	"passageFontSize",
+	"overlayFontSize",
+	"sidebarFontSize",
+];
+
+function globalDefaultGeneralOptionKeys() {
+	return Object.keys(settingsObjects("general").options).filter(
+		key => !globalDefaultOptionExclusions.includes(key) && !themeDefaultOptions.includes(key)
+	);
+}
+window.globalDefaultGeneralOptionKeys = globalDefaultGeneralOptionKeys;
+
+function globalDefaultThemeOptionKeys() {
+	return themeDefaultOptions.slice();
+}
+window.globalDefaultThemeOptionKeys = globalDefaultThemeOptionKeys;
+
+/*
+	Applies stored global defaults over a freshly built $options object. Values are
+	validated against the settingsObjects registry so a stale or corrupt stored value
+	is ignored rather than written in. Uses an explicit undefined check so a legitimate
+	false or 0 is applied.
+*/
+function applyGlobalDefaultOptions(options, storedDefaults) {
+	if (options == null || typeof storedDefaults !== "object" || storedDefaults === null) return options;
+	const validators = settingsObjects("general").options;
+	Object.keys(storedDefaults).forEach(key => {
+		const value = storedDefaults[key];
+		if (value === undefined) return;
+		const validator = validators[key];
+		if (validator !== undefined && !validateValue(validator, value)) return;
+		options[key] = value;
+	});
+	return options;
+}
+window.applyGlobalDefaultOptions = applyGlobalDefaultOptions;
+
 /* Converts specific settings to so they don't look so chaotic to players */
 function settingsConvert(exportType, type, settings) {
 	const listObject = settingsObjects(type);

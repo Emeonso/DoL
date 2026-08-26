@@ -1,0 +1,859 @@
+function getIntegrityInfo(integrity) {
+	if (integrity >= 900) return [7, "green"];
+	if (integrity >= 500) return [6, "teal"];
+	if (integrity >= 200) return [5, "lblue"];
+	if (integrity >= 100) return [4, "blue"];
+	if (integrity >= 50) return [3, "purple"];
+	if (integrity >= 20) return [2, "pink"];
+	return [1, "red"];
+}
+window.getIntegrityInfo = getIntegrityInfo;
+
+function getRevealInfo(reveal) {
+	if (reveal >= 900) return [7, "red"];
+	if (reveal >= 700) return [6, "pink"];
+	if (reveal >= 500) return [5, "purple"];
+	if (reveal >= 300) return [4, "blue"];
+	if (reveal >= 200) return [3, "lblue"];
+	if (reveal >= 100) return [2, "teal"];
+	return [1, "green"];
+}
+window.getRevealInfo = getRevealInfo;
+
+function getWarmthInfo(warmth) {
+	// Factor is 1-10. warmth of 7-9 will all have 7 dots, but different colours
+	const factor = (warmth - 5.5) / 4.5;
+	return "background-color:" + ColourUtils.interpolateTripleColor("#62c6ff", "#ffee3b", "#ff481b", factor);
+}
+window.getWarmthInfo = getWarmthInfo;
+
+// for outfits it adds the lower piece's warmth too
+function getTrueWarmth(item) {
+	let warmth = item.warmth || 0;
+
+	if (item.outfitPrimary) {
+		// sum of warmth of every secondary piece
+		// outfitPrimary looks like this {'lower': 'item_name', 'head': 'item_name'}
+		warmth += Object.keys(item.outfitPrimary) // loop through secondary items list
+			.filter(x => item.outfitPrimary[x] !== "broken" && item.outfitPrimary[x] !== "split") // filter out broken pieces
+			.map(x => setup.clothes[x].find(z => z.name === item.outfitPrimary[x] && z.modder === item.modder)) // find items in setup.clothes
+			.reduce((sum, x) => sum + (x.warmth || 0), 0); // calculate sum of their warmth field
+	}
+
+	if (item.outfitSecondary) {
+		if (item.outfitSecondary.length % 2 !== 0) console.log("WARNING: " + item.name + " has bad .outfitSecondary data!");
+
+		// outfitSecondary looks like this ['upper', 'item_name', 'head', 'item_name']
+		item.outfitSecondary.forEach((x, i) => {
+			if (i % 2 === 0 && item.outfitSecondary[i + 1] !== "broken" && item.outfitSecondary[i + 1] !== "split") {
+				warmth += setup.clothes[x].find(z => z.name === item.outfitSecondary[i + 1] && z.modder === item.modder).warmth || 0;
+			}
+		});
+	}
+
+	return warmth;
+}
+window.getTrueWarmth = getTrueWarmth;
+
+function wardrobeComboLayout(slot) {
+	if (slot === "upper" || slot === "lower") return { primary: "upper", secondary: "lower" };
+	if (slot === "under_upper" || slot === "under_lower") return { primary: "under_upper", secondary: "under_lower" };
+	return undefined;
+}
+
+function wardrobeNativeComboLink(item, slot) {
+	const layout = wardrobeComboLayout(slot);
+	if (!layout || !item?.name || !setup?.clothes?.[slot]) return undefined;
+
+	let nativeItem;
+	if (typeof getSetupClothing === "function") {
+		try {
+			const indexedItem = getSetupClothing(slot, item);
+			if (indexedItem && (indexedItem.variable === item.variable || indexedItem.name?.toLowerCase() === item.name.toLowerCase())) nativeItem = indexedItem;
+		} catch (error) {
+			/* Fall back to the non-mutating lookup below for incomplete legacy entries. */
+		}
+	}
+	nativeItem ||= setup.clothes[slot].find(clothing => clothing.name === item.name && clothing.modder === item.modder) ||
+		setup.clothes[slot].find(clothing => clothing.name?.toLowerCase() === item.name.toLowerCase()) ||
+		setup.clothes[slot].find(clothing => clothing.variable === item.variable && clothing.modder === item.modder) ||
+		setup.clothes[slot].find(clothing => clothing.variable === item.variable) ||
+		setup.clothes[slot].find(clothing => item.set && clothing.set === item.set && (slot === "upper" ? clothing.outfitPrimary : clothing.outfitSecondary?.[0] === "upper"));
+	if (!nativeItem) return undefined;
+
+	return slot === layout.primary ? nativeItem.outfitPrimary?.[layout.secondary] : nativeItem.outfitSecondary?.[0] === layout.primary ? nativeItem.outfitSecondary[1] : undefined;
+}
+
+function wardrobeComboLowerName(primary, primarySlot = "upper") {
+	const layout = wardrobeComboLayout(primarySlot);
+	const savedLowerName = primary?.outfitPrimary?.[layout?.secondary];
+	if (savedLowerName === "broken") return undefined;
+	if (savedLowerName && savedLowerName !== "split") return savedLowerName;
+
+	return wardrobeNativeComboLink(primary, primarySlot);
+}
+
+function wardrobeComboUpperName(secondary, secondarySlot = "lower") {
+	const layout = wardrobeComboLayout(secondarySlot);
+	const savedOutfitSecondary = secondary?.outfitSecondary;
+	if (savedOutfitSecondary?.[0] === layout?.primary && savedOutfitSecondary[1] === "broken") return undefined;
+	if (savedOutfitSecondary?.[0] === layout?.primary && savedOutfitSecondary[1] && savedOutfitSecondary[1] !== "split") return savedOutfitSecondary[1];
+
+	return wardrobeNativeComboLink(secondary, secondarySlot);
+}
+
+function wardrobeIsComboLowerCandidate(item, secondarySlot = "lower") {
+	return Boolean(item?.name && wardrobeComboUpperName(item, secondarySlot));
+}
+window.wardrobeIsComboLowerCandidate = wardrobeIsComboLowerCandidate;
+
+function wardrobeRepairComboMetadata(primary, secondary, lowerName, primarySlot = "upper") {
+	const layout = wardrobeComboLayout(primarySlot);
+	if (!layout || !primary || !secondary || !lowerName) return;
+
+	primary.outfitPrimary ||= {};
+	primary.outfitPrimary[layout.secondary] = lowerName;
+	secondary.outfitSecondary = [layout.primary, primary.name];
+}
+window.wardrobeRepairComboMetadata = wardrobeRepairComboMetadata;
+
+function wardrobeIsComboLowerLocked(worn, slot) {
+	const layout = wardrobeComboLayout(slot);
+	if (!layout || slot !== layout.secondary || !worn?.[layout.primary]) return false;
+
+	const upper = worn[layout.primary];
+	const lowerName = wardrobeComboLowerName(upper, layout.primary);
+
+	return (
+		upper.name && upper.name !== "naked" &&
+		lowerName
+	);
+}
+window.wardrobeIsComboLowerLocked = wardrobeIsComboLowerLocked;
+
+function wardrobeComboPrimaryName(worn, slot) {
+	const layout = wardrobeComboLayout(slot);
+	return layout && (worn?.[layout.primary]?.name_cap || worn?.[layout.primary]?.name);
+}
+window.wardrobeComboPrimaryName = wardrobeComboPrimaryName;
+
+function wardrobeFindComboLower(primary, wornLower, wardrobeLower, primarySlot = "upper") {
+	const layout = wardrobeComboLayout(primarySlot);
+	const lowerName = wardrobeComboLowerName(primary, primarySlot);
+	const result = { combo: false, source: "none", item: null, index: -1, lowerName: undefined };
+	if (!layout || !lowerName) return result;
+
+	result.combo = true;
+	result.lowerName = lowerName;
+	const matchesPrimary = secondary => {
+		let nativeSecondaryName;
+		if (typeof getSetupClothing === "function") {
+			try {
+				const nativeSecondary = getSetupClothing(layout.secondary, secondary);
+				if (nativeSecondary?.outfitSecondary?.[0] === layout.primary) nativeSecondaryName = nativeSecondary.name;
+			} catch (error) {
+				/* Keep the saved entry as the fallback identity. */
+			}
+		}
+		const sameLowerName = secondary?.name?.toLowerCase() === lowerName.toLowerCase() || nativeSecondaryName?.toLowerCase() === lowerName.toLowerCase();
+		if (!secondary || !sameLowerName) return false;
+		const linkedUpperName = wardrobeComboUpperName(secondary, layout.secondary);
+		const sameNativePair = linkedUpperName?.toLowerCase() === primary.name?.toLowerCase() ||
+			(primary.variable && secondary.variable === primary.variable) ||
+			(primary.set && secondary.set === primary.set);
+		if (!sameNativePair) return false;
+		if (primary.colour !== secondary.colour || primary.pattern !== secondary.pattern) return false;
+		if (primary.accessory_colour !== 0 && secondary.accessory_colour !== 0 && primary.accessory_colour !== secondary.accessory_colour) return false;
+		if (secondary.colour === "custom" && (primary.colourCustom === undefined || primary.colourCustom !== secondary.colourCustom)) return false;
+		if (secondary.accessory !== 0 && secondary.accessory_colour === "custom" && (primary.accessory_colourCustom === undefined || primary.accessory_colourCustom !== secondary.accessory_colourCustom)) return false;
+		return true;
+	};
+
+	if (matchesPrimary(wornLower)) {
+		result.source = "worn";
+		result.item = wornLower;
+		return result;
+	}
+
+	const lowerIndex = Array.isArray(wardrobeLower) ? wardrobeLower.findIndex(matchesPrimary) : -1;
+	if (lowerIndex !== -1) {
+		result.source = "wardrobe";
+		result.item = wardrobeLower[lowerIndex];
+		result.index = lowerIndex;
+		return result;
+	}
+
+	result.source = "missing";
+	return result;
+}
+window.wardrobeFindComboLower = wardrobeFindComboLower;
+
+function clothingSlotToIconName(slotName, outfits) {
+	switch (slotName) {
+		case "over_upper":
+			return "overoutfit";
+		case "upper":
+			return outfits ? "outfit" : "upper";
+		case "under_upper":
+			return outfits ? "underoutfit" : "underupper";
+		case "under_lower":
+			return "underlower";
+		default:
+			return slotName;
+	}
+}
+window.clothingSlotToIconName = clothingSlotToIconName;
+
+// Make .divs-links clickable as if they're anchors
+function linkifyDivs(parentSelector = "") {
+	const divLinks = $(parentSelector + " .div-link");
+	divLinks.off("click.linkifyDivs").on("click.linkifyDivs", function (e) {
+		if ($(e.target).closest("a").length) return;
+		$(this).find("a").first().click();
+	});
+	divLinks.find("a").off("click.linkifyDivs").on("click.linkifyDivs", function (e) {
+		e.stopPropagation();
+	});
+}
+window.linkifyDivs = linkifyDivs;
+
+// Hook custom colour sliders and preset dropdowns
+function attachCustomColourHooks(slot = "") {
+	$(() => {
+		// throttling for smoother experience
+		let updating = false;
+		$(".custom-colour-sliders.primary input[type=range]").on("input change", () => {
+			if (updating) return;
+			updating = true;
+			requestAnimationFrame(() => {
+				updating = false;
+				updateCustomColour("primary", slot);
+				updateMannequin(slot);
+			});
+		});
+		$(".custom-colour-sliders.secondary input[type=range]").on("input change", () => {
+			if (updating) return;
+			updating = true;
+			requestAnimationFrame(() => {
+				updating = false;
+				updateCustomColour("secondary", slot);
+				updateMannequin(slot);
+			});
+		});
+		$(".custom-colour.primary > .custom-colour-presets > .presets-dropdown > select").on("change", () => {
+			loadCustomColourPreset("primary");
+			Wikifier.wikifyEval("<<updateclotheslist>>");
+		});
+		$(".custom-colour.secondary > .custom-colour-presets > .presets-dropdown > select").on("change", () => {
+			loadCustomColourPreset("secondary");
+			Wikifier.wikifyEval("<<updateclotheslist>>");
+		});
+
+		$(".custom-colour-sliders.primary > .colour-slider > div > input").on("input", e => {
+			V.customColors.sepia.primary = 0;
+		});
+		$(".custom-colour-sliders.secondary > .colour-slider > div > input").on("input", e => {
+			V.customColors.sepia.secondary = 0;
+		});
+	});
+}
+window.attachCustomColourHooks = attachCustomColourHooks;
+
+function updateCustomColour(type, slot) {
+	$(".colour-options-div." + type + " > .colour-button > .bg-custom").css("filter", getCustomColourStyle(type, true));
+	const model = Renderer.locateModel("main", "shop");
+	if (model) {
+		const customColors = V.customColors;
+		model.options.filters["worn_" + slot + (type === "primary" ? "_custom" : "_acc_custom")] = getCustomClothesColourCanvasFilter(
+			customColors.color[type],
+			customColors.saturation[type],
+			customColors.brightness[type],
+			customColors.contrast[type]
+		);
+	}
+}
+window.updateCustomColour = updateCustomColour;
+
+function updateMannequin(slot = "") {
+	Wikifier.wikifyEval("<<updatemannequin '" + slot + "'>>");
+}
+window.updateMannequin = updateMannequin;
+
+function getCustomColourStyle(type, valueOnly = false) {
+	if (type !== "primary" && type !== "secondary") return;
+	return (
+		(valueOnly ? "" : "filter: ") +
+		"hue-rotate(" +
+		V.customColors.color[type] +
+		"deg) saturate(" +
+		V.customColors.saturation[type] +
+		") brightness(" +
+		V.customColors.brightness[type] +
+		") contrast(" +
+		V.customColors.contrast[type] +
+		")" +
+		(valueOnly ? "" : ";")
+	);
+}
+window.getCustomColourStyle = getCustomColourStyle;
+
+function saveCustomColourPreset(slot = "primary") {
+	const setName = prompt("Enter new colour preset name", "New preset");
+	if (setName != null) {
+		if (Object.keys(V.customColors.presets).includes(setName)) {
+			alert("Preset '" + setName + "' already exists!");
+			return;
+		}
+
+		V.customColors.presets[setName] = {
+			ver: 3,
+			color: V.customColors.color[slot],
+			value: V.customColors.value[slot],
+			brightness: V.customColors.brightness[slot],
+			saturation: V.customColors.saturation[slot],
+			contrast: V.customColors.contrast[slot],
+		};
+	}
+}
+window.saveCustomColourPreset = saveCustomColourPreset;
+
+const colourPickerShopCustom = {};
+
+function loadCustomColourPreset(slot = "primary") {
+	const setName = T.preset_choice[slot];
+	const preset = V.customColors.presets[setName];
+	if (preset) {
+		// ver 3 includes property "value" which is used to set the position of the "value"(aka brightness) custom slider at shop, see here : https://i.imgur.com/hmbFT4U.png
+		if (preset.ver >= 3) {
+			V.customColors.value[slot] = preset.value;
+			// this effectively set the different sliders values
+			colourPickerShopCustom[slot].color.hue = preset.color;
+			colourPickerShopCustom[slot].color.saturation = (((preset.saturation / 32) * 100) / 4) * 100;
+			colourPickerShopCustom[slot].color.value = preset.value;
+		}
+		// new version of preset (has only one set of colour parameters and doesn't have sepia)
+		if (preset.ver >= 2) {
+			V.customColors.color[slot] = preset.color;
+			V.customColors.brightness[slot] = preset.brightness;
+			V.customColors.saturation[slot] = preset.saturation;
+			V.customColors.contrast[slot] = preset.contrast;
+			V.customColors.sepia[slot] = 0;
+		}
+		// legacy preset (has both primary and secondary colours information)
+		else {
+			V.customColors.color.primary = preset.color.primary;
+			V.customColors.brightness.primary = preset.brightness.primary;
+			V.customColors.saturation.primary = preset.saturation.primary;
+			V.customColors.contrast.primary = preset.contrast.primary;
+			V.customColors.sepia.primary = preset.sepia.primary;
+
+			V.customColors.color.secondary = preset.color.secondary;
+			V.customColors.brightness.secondary = preset.brightness.secondary;
+			V.customColors.saturation.secondary = preset.saturation.secondary;
+			V.customColors.contrast.secondary = preset.contrast.secondary;
+			V.customColors.sepia.secondary = preset.sepia.secondary;
+		}
+	}
+}
+window.loadCustomColourPreset = loadCustomColourPreset;
+
+// adjusts available options for reveal dropdowns (makes sure upper bound is not below lower bound and vice versa)
+function getFilterRevealOptions(type) {
+	const optionsFrom = { unassuming: 0, smart: 100, tasteful: 200, comfy: 300, seductive: 500, risqué: 700, lewd: 900 };
+	const optionsTo = { unassuming: 100, smart: 200, tasteful: 300, comfy: 500, seductive: 700, risqué: 900, lewd: 9999 };
+
+	if (type === "from") {
+		// this line removes values that are larger than reveal.to
+		return Object.keys(optionsFrom)
+			.filter(x => optionsFrom[x] < V.shopClothingFilter.reveal.to)
+			.reduce((res, key) => {
+				res[key] = optionsFrom[key];
+				return res;
+			}, {});
+	} else {
+		// this line removes values that are smaller than reveal.from
+		return Object.keys(optionsTo)
+			.filter(x => optionsTo[x] > V.shopClothingFilter.reveal.from)
+			.reduce((res, key) => {
+				res[key] = optionsTo[key];
+				return res;
+			}, {});
+	}
+}
+window.getFilterRevealOptions = getFilterRevealOptions;
+
+function getFilterOutfitOptions() {
+	const options = { None: "none" };
+	for (let i = 0; i < V.outfit.length; i++) {
+		const outfit = V.outfit[i];
+		let name = outfit.name;
+		for (let j = 1; options[name] !== undefined; j++) {
+			name = outfit.name + " (" + j + ")";
+		}
+		options[name] = i;
+	}
+	return options;
+}
+window.getFilterOutfitOptions = getFilterOutfitOptions;
+
+// toggles checkboxes in filters menu
+function toggleAllTraitsFilter() {
+	const chboxes = $("#filter-traits input:not(:checked)");
+	if (chboxes.length > 0) chboxes.click();
+	else $("#filter-traits input:checked").click();
+}
+window.toggleAllTraitsFilter = toggleAllTraitsFilter;
+
+// accepts a list of clothes, returns a filtered list of clothes
+function applyClothingShopFilters(items) {
+	const f = V.shopClothingFilter;
+	if (!f.active) return items;
+
+	// (example) turns f.gender object {female: true, neutral: true, male: false} into ["f", "n"], ready to compare with gender in items
+	const allowedGenders = Object.keys(f.gender)
+		.filter(x => f.gender[x])
+		.map(x => x.first());
+
+	let filterOutfit = f.outfit.index !== "none";
+	if (filterOutfit && f.outfit.index >= V.outfit.length) {
+		filterOutfit = false;
+	}
+
+	const filteredOutfitClothes = new Set();
+	if (filterOutfit) {
+		const outfit = V.outfit[f.outfit.index];
+		for (const slot of setup.clothingLayer.all) {
+			if (outfit[slot] != null) {
+				filteredOutfitClothes.add(outfit[slot]);
+			}
+		}
+	}
+
+	items = items.filter(
+		x =>
+			allowedGenders.includes(x.gender) &&
+			x.reveal >= f.reveal.from &&
+			x.reveal < f.reveal.to &&
+			x.warmth >= f.warmth.from &&
+			x.warmth < f.warmth.to &&
+			(f.traits.length === 0 || f.traits.includesAny(x.type)) &&
+			(!filterOutfit || filteredOutfitClothes.has(x.name))
+	);
+
+	if (f.sorting.enabled) {
+		const prop = f.sorting.prop;
+		const isAsc = f.sorting.order === "asc";
+
+		/* this is not good, I'm just doing this not to avoid refactoring the setup.clothes object again
+
+		currently...
+		we have a dedicated clothing.all array that has clones of all clothing objects spread out over different arrays per clothing
+		then the cloned object is assigned the "realSlot" property, which contains the name of the slot from the array of which the object was cloned
+		and so, when you click on "all items" in the shop, clothingShopSlot is all and can't be used to figure out the item's slot,
+		but the items the function fetches are from the "all" slot so they have the realSlot property
+		and when you click on a specific slot, clothingShopSlot is the name of the slot, and realSlot is null because we only added realSlot to the "all" slot's clones
+
+		and we only really need the slot so that we can give it to the function that gets the properties of the item,
+		  but the function uses findIndex with an arrow function for the lookup, so we might as well go through the "all" slot to find the item rather than
+		  find the specific array (which does narrow down the search but when you could implement this in O(1) but you're using findIndex - the milliseconds are evidently not a priority)
+
+		so really we don't even need the "slot" property at all, this all needs a refactor
+
+
+		Here's how I would refactor it:
+		1) we need to have a map, mapping the item's ID (or ID + modder name, I think both are only unique together?) to the item's setup object
+		2) have an array of item IDs (just the strings) for each slot (or a set - doesn't matter, lookup is unnecessary if we implement point 3)
+		   If we need to find all items in a specific slot - we simply iterate the Set/array. Lookup of the setup object is O(1), so it's just as fast as it is now.
+		3) item instance objects would contain the ID of the item and all the dynamic information (so just like it is currently)
+		4) (optional) I'd personally remove any and all dynamic properties from the setup object (stuff like integrity),
+			and get rid of all static/const properties from the item instance objects (stuff like integrity_max)
+			additionally, instead of using a function to "trim" the setup object (cloning it and removing the const properties and adding the dynamic ones),
+			  I'd just create an object, since ideally none of the values should be repeated/overlapped between the setup and instance (worn/bought) objects
+
+		As a result, we'd have one setup.clothes map that contains all the actual setup objects, and a set for each slot that only contains IDs.
+		No more clones of the same clothing, no more "all" slot. If you need all clothing - you simply iterate the map's values.
+		If you need specific slots - you iterate the IDs from the set and get the setup object from the map with O(1) lookup.
+
+		If that sounds like a pain (even though that's less work than what we currently do to just get the price of an item), we can even have a generator function that
+		  will yield the actual setup objects in a slot without you having to do clothing.items.get(id) every time (and since it's a generator - we wouldn't be looping twice).
+
+		This way, we don't need to loop through items in order to find an item, and we don't need to do all this weird ritual dancing with V.clothingShopSlot and _realSlot
+
+		This would necessitate a few changes and fixes (I'm only listing stuff I've seen, there's probably plenty more)
+		1) currently the outfits store item names, instead of the IDs. The outfits should contain the IDs instead.
+		2) I forgor.
+
+		Just to clarify - this is mainly supposed to make the clothing data more organised, easier to manage and work with, less side-effects and weird lookup/cloning techniques.
+		It will definitely drastically improve speed, but it will probably not have a noticable difference in performance.
+		*/
+
+		const getSlot = item_ => item_.slot;
+
+		// items is a shallow copy, so we're not mutating the passed array
+		if (prop === "price") {
+			items.sort((a, b) =>
+				isAsc ? getClothingCost(a, getSlot(a)) - getClothingCost(b, getSlot(b)) : getClothingCost(b, getSlot(b)) - getClothingCost(a, getSlot(a))
+			);
+		} else if (prop === "protection") {
+			items.sort((a, b) => (isAsc ? a.integrity_max - b.integrity_max : b.integrity_max - a.integrity_max));
+		} else if (prop === "reveal") {
+			items.sort((a, b) => (isAsc ? a.reveal - b.reveal : b.reveal - a.reveal));
+		} else if (prop === "warmth") {
+			items.sort((a, b) => (isAsc ? getTrueWarmth(a) - getTrueWarmth(b) : getTrueWarmth(b) - getTrueWarmth(a)));
+		}
+	}
+
+	return items;
+}
+window.applyClothingShopFilters = applyClothingShopFilters;
+
+function shopSearchReplacer(name) {
+	return name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5' -]+/g, "");
+}
+window.shopSearchReplacer = shopSearchReplacer;
+
+function getOwnedClothingCount(index, type) {
+	const wardrobe = V.wardrobes.shopReturn === "wardrobe" ? V.wardrobe : V.wardrobes[V.wardrobes.shopReturn] || V.wardrobe;
+	return wardrobe[type].reduce((p, c) => p + Number(c.index === index), 0);
+}
+window.getOwnedClothingCount = getOwnedClothingCount;
+
+function importCustomColour(acc) {
+	const setName = prompt("Enter custom code", "");
+	if (setName != null) {
+		let color;
+		try {
+			color = JSON.parse(window.atob(setName));
+		} catch (e) {
+			document.getElementById("export-custom-colour-box").outerHTML = `
+			<div id="export-custom-colour-box">
+				<span class="export-custom-colour-error">Invalid string, make sure you copied it correctly without any spaces around it.</span>
+			</div>`;
+			return;
+		}
+		const colourProperties = Object.getOwnPropertyNames(color);
+
+		if (colourProperties.sort().join(",") === ["color", "saturation", "value", "brightness", "contrast"].sort().join(",")) {
+			V.customColors.color[acc] = color.color;
+			V.customColors.saturation[acc] = color.saturation;
+			V.customColors.value[acc] = color.value;
+			V.customColors.contrast[acc] = color.contrast;
+			V.customColors.brightness[acc] = color.brightness;
+			colourPickerShopCustom[acc].color.hue = color.color;
+			colourPickerShopCustom[acc].color.saturation = (((color.saturation / 32) * 100) / 4) * 100;
+			colourPickerShopCustom[acc].color.value = color.value;
+			document.getElementById("numberslider-input-customcolorscontrastprimary").value = color.contrast.toString();
+			document.getElementById("numberslider-value-customcolorscontrastprimary").innerText = color.contrast.toString();
+			document.getElementById("export-custom-colour-box").outerHTML = `
+			<div id="export-custom-colour-box">
+				<span class="export-custom-colour-alert">Imported!</span>
+			</div>`;
+			window.setTimeout(() => {
+				if (document.getElementById("export-custom-colour-box"))
+					document.getElementById("export-custom-colour-box").classList.add("successfully-exported");
+			}, 100);
+			updateMannequin();
+		} else {
+			document.getElementById("export-custom-colour-box").outerHTML = `
+			<div id="export-custom-colour-box">
+				<span class="export-custom-colour-error">Invalid code.</span>
+			</div>`;
+		}
+	}
+}
+window.importCustomColour = importCustomColour;
+
+function exportCustomColour(acc) {
+	const obj = {
+		color: V.customColors.color[acc],
+		saturation: V.customColors.saturation[acc],
+		value: V.customColors.value[acc],
+		brightness: V.customColors.brightness[acc],
+		contrast: V.customColors.contrast[acc],
+	};
+
+	navigator.clipboard.writeText(window.btoa(JSON.stringify(obj)));
+	document.getElementById("export-custom-colour-box").outerHTML = `
+	<div id="export-custom-colour-box">
+		<span class="export-custom-colour-alert">Copied to clipboard!</span>
+	</div>`;
+	window.setTimeout(() => {
+		if (document.getElementById("export-custom-colour-box")) document.getElementById("export-custom-colour-box").classList.add("successfully-exported");
+	}, 100);
+}
+window.exportCustomColour = exportCustomColour;
+
+function adaptSliderWidth() {
+	if (window.innerWidth > 787) return 400;
+	else if (window.innerWidth > 710) return 350;
+	else if (window.innerWidth > 667) return 300;
+	else if (window.innerWidth > 600) return 230;
+	else if (window.innerWidth > 519) return 350;
+	else if (window.innerWidth > 463) return 300;
+	else return 250;
+}
+
+function shopClothCustomColorWheel(acc) {
+	const container = document.createElement("label");
+	colourPickerShopCustom[acc] = new iro.ColorPicker(container, {
+		color: { h: 61, s: 47, v: 100 },
+		width: adaptSliderWidth(),
+		layout: [
+			{
+				component: iro.ui.Slider,
+				options: {
+					sliderType: "hue",
+				},
+			},
+			{
+				component: iro.ui.Slider,
+				options: {
+					sliderType: "saturation",
+				},
+			},
+			{
+				component: iro.ui.Slider,
+				options: {
+					sliderType: "value",
+				},
+			},
+		],
+	});
+	colourPickerShopCustom[acc].color.hue = V.customColors.color[acc];
+	colourPickerShopCustom[acc].color.saturation = (((V.customColors.saturation[acc] / 32) * 100) / 4) * 100;
+	colourPickerShopCustom[acc].color.value = V.customColors.value[acc];
+	//
+	colourPickerShopCustom[acc].on(["color:init", "color:change"], function (color) {
+		V.customColors.color[acc] = Math.round(color.hue);
+		V.customColors.saturation[acc] = (((color.saturation * 32) / 100) * 4) / 100;
+		V.customColors.brightness[acc] = (color.hsl.l * 4) / 100;
+		V.customColors.value[acc] = color.value;
+		if (document.getElementById("mannequin")) updateMannequin();
+	});
+	return container;
+}
+window.shopClothCustomColorWheel = shopClothCustomColorWheel;
+
+function updateHueSlider(newValue, acc) {
+	colourPickerShopCustom[acc].color.hue = newValue;
+}
+window.updateHueSlider = updateHueSlider;
+
+window.addEventListener(
+	"resize",
+	function (event) {
+		for (const cat in colourPickerShopCustom) {
+			colourPickerShopCustom[cat].resize(adaptSliderWidth());
+		}
+	},
+	true
+);
+
+Macro.add("shopclothingcustomcolourwheel", {
+	handler() {
+		if (this.args[0]) {
+			const resp = shopClothCustomColorWheel(this.args[0], this.args[1]);
+			this.output.append(resp.children[0]);
+		}
+	},
+});
+
+window.colourPickerShopCustom = colourPickerShopCustom;
+
+function filterShopGroup(clothingItems) {
+	if (!Array.isArray(clothingItems)) return [];
+	T.itemGroups = {};
+	return clothingItems.filter(item => {
+		if (!item.shopGroup) return true;
+		if (!T.itemGroups[item.shopGroup]) {
+			T.itemGroups[item.shopGroup] = [item.index];
+			return true;
+		} else {
+			T.itemGroups[item.shopGroup].push(item.index);
+			return false;
+		}
+	});
+}
+window.filterShopGroup = filterShopGroup;
+
+function clothingWarmthScale(element, value) {
+	$(() => {
+		const minValue = 34;
+		const maxValue = 40;
+
+		const positionPercent = normalise(value, maxValue, minValue) * 100;
+		element.css("left", `${positionPercent}%`);
+	});
+}
+
+const ATTRACTIVENESS_RATING_BANDS = Object.freeze([
+	{ grade: "F", min: 0, max: 999, label: "Awful" },
+	{ grade: "D", min: 1000, max: 1999, label: "Plain" },
+	{ grade: "C", min: 2000, max: 2999, label: "Cute" },
+	{ grade: "B", min: 3000, max: 3999, label: "Attractive" },
+	{ grade: "A", min: 4000, max: 4999, label: "Beautiful" },
+	{ grade: "S", min: 5000, max: 8000, label: "Stunning" },
+]);
+
+function getAttractivenessRating(value) {
+	const score = Math.clamp(Number.isFinite(Number(value)) ? Number(value) : 0, 0, 8000);
+	return ATTRACTIVENESS_RATING_BANDS.find((band) => score <= band.max) || ATTRACTIVENESS_RATING_BANDS.at(-1);
+}
+
+function getAttractivenessContributingFactors() {
+	const factors = [];
+	const addFactor = (label) => {
+		const text = String(label).trim();
+		const match = text.match(/^(.*?)(?:\s+(\+{1,5}))?$/);
+		factors.push({
+			label: match?.[1] || text,
+			marker: match?.[2] || "",
+			positive: true,
+		});
+	};
+	const reveal = (item) => Number(item?.reveal) || 0;
+	const typeIncludes = (item, type) => String(item?.type || "").includes(type);
+	const worn = V.worn || {};
+	const beauty = Number(V.beauty) || 0;
+	const beautyMax = Number(V.beautymax) || 10000;
+	if (beauty >= (beautyMax / 7) * 6) addFactor("Beauty: Divine +++++");
+	else if (beauty >= (beautyMax / 7) * 5) addFactor("Beauty: Ravishing ++++");
+	else if (beauty >= (beautyMax / 7) * 4) addFactor("Beauty: Beautiful +++");
+	else if (beauty >= (beautyMax / 7) * 3) addFactor("Beauty: Charming ++");
+	else if (beauty >= (beautyMax / 7) * 2) addFactor("Beauty: Pretty +");
+	else if (beauty >= beautyMax / 7) addFactor("Beauty: Cute");
+	addFactor(`Hair length ${Number(V.hairlength) >= 333 ? "+".repeat(Number(V.hairlength) >= 666 ? 2 : 1) : ""}`);
+
+	if (typeIncludes(worn.upper, "naked")) {
+		if (typeIncludes(worn.lower, "overalls")) addFactor("Topless (covered)");
+		else addFactor("Topless");
+	} else if (reveal(worn.upper) >= 500) addFactor("Revealing top");
+	if (typeIncludes(worn.lower, "naked")) addFactor("Bottomless");
+	else if (reveal(worn.lower) >= 500) addFactor("Revealing bottoms");
+	if (typeIncludes(worn.under_lower, "naked")) addFactor("Pantiless");
+	else if (reveal(worn.under_lower) >= 500) addFactor("Sexy underwear");
+
+	const transformationParts = V.transformationParts || {};
+	if (Number(V.wolfgirl) >= 6) addFactor(`Wolfy ${"+".repeat(2 - ["ears", "tail"].filter((part) => transformationParts.wolf?.[part] === "hidden").length)}`);
+	if (Number(V.cat) >= 6) addFactor(`Catlike ${"+".repeat(2 - ["ears", "tail"].filter((part) => transformationParts.cat?.[part] === "hidden").length)}`);
+	if (Number(V.cow) >= 6) addFactor(`Bovine ${"+".repeat(2 - Math.ceil(["ears", "tail", "horns"].filter((part) => transformationParts.cow?.[part] === "hidden").length / 2))}`);
+	if (Number(V.harpy) >= 6) addFactor(`Harpy ${"+".repeat(2 - Math.ceil(["tail", "eyes", "malar", "plumage", "wings"].filter((part) => transformationParts.bird?.[part] === "hidden").length / 3))}`);
+	if (Number(V.fox) >= 6) addFactor(`Vulpine ${"+".repeat(3 - ["ears", "tail"].filter((part) => transformationParts.fox?.[part] === "hidden").length)}`);
+	if (Number(V.angel) >= 6) addFactor(`Angel ${"+".repeat(2 - ["halo", "wings"].filter((part) => transformationParts.angel?.[part] === "hidden").length)}`);
+	if (Number(V.fallenangel) >= 2) addFactor(`Fallen angel ${"+".repeat(2 - ["halo", "wings"].filter((part) => transformationParts.fallenAngel?.[part] === "hidden").length)}`);
+	if (Number(V.demon) >= 6) addFactor(`Demon ${"+".repeat(2 - Math.ceil(["horns", "tail", "wings"].filter((part) => transformationParts.demon?.[part] === "hidden").length / 2))}`);
+
+	const makeup = V.makeup || {};
+	if (["lipstick", "eyeshadow", "mascara", "blusher"].some((part) => Number(makeup[part]) !== 0)) addFactor("Attractive makeup");
+	if (reveal(worn.upper) + reveal(worn.lower) >= 50) {
+		const outfitName = worn.lower?.name === "naked" || (worn.upper?.name === "naked" && Number(V.player?.perceived_breastsize) > 2) ? '"outfit"' : "outfit";
+		addFactor(`Attractive ${outfitName} ${"+".repeat(Math.floor((reveal(worn.upper) + reveal(worn.lower)) / 400))}`);
+	}
+	const accessoryFactors = [
+		["head", "headwear"],
+		["face", "face accessory"],
+		["neck", "neck accessory"],
+		["legs", "legwear"],
+		["feet", "shoes"],
+	];
+	accessoryFactors.forEach(([slot, name]) => {
+		if (reveal(worn[slot]) >= 50) addFactor(`Attractive ${name} ${"+".repeat(Math.floor(reveal(worn[slot]) / 200))}`);
+	});
+
+	return factors;
+}
+
+window.getAttractivenessRating = getAttractivenessRating;
+window.getAttractivenessContributingFactors = getAttractivenessContributingFactors;
+
+function clothingAttractivenessScale(element, value) {
+	$(() => {
+		const score = Math.clamp(Number.isFinite(Number(value)) ? Number(value) : 0, 0, 8000);
+		const band = getAttractivenessRating(score);
+		const bandIndex = ATTRACTIVENESS_RATING_BANDS.indexOf(band);
+		const bandEnd = ATTRACTIVENESS_RATING_BANDS[bandIndex + 1]?.min ?? 8000;
+		const bandProgress = bandEnd > band.min ? (score - band.min) / (bandEnd - band.min) : 0;
+		const positionPercent = ((bandIndex + Math.clamp(bandProgress, 0, 1)) / ATTRACTIVENESS_RATING_BANDS.length) * 100;
+		element.css("left", positionPercent + "%");
+	});
+}
+
+DefineMacro("updateattractivenessscale", (attractivenessOverride) => {
+	$(() => {
+		const indicator = $("#attractivenessIndicator");
+		const scale = $("#attractivenessScale");
+		const attractiveness = Number.isFinite(attractivenessOverride) ? attractivenessOverride : (Number.isFinite(V.attractiveness) ? V.attractiveness : 0);
+		const rating = getAttractivenessRating(attractiveness);
+		clothingAttractivenessScale(indicator, attractiveness);
+		scale.attr("data-rating", rating.grade).attr("aria-label", `Attractiveness rating: ${rating.grade}, ${rating.label}`);
+		indicator.attr("aria-label", `Attractiveness: ${attractiveness}, rating ${rating.grade}`);
+		indicator.tooltip({
+			message: "Attractiveness: " + attractiveness,
+			delay: 200,
+			position: "cursor",
+		});
+	});
+});
+
+function getTargetWarmth(targetTemperature) {
+	let low = 0;
+	let high = 60;
+	let bestWarmth = null;
+
+	while (low <= high) {
+		const mid = Math.floor((low + high) / 2);
+		const temp = Weather.BodyTemperature.getRestingPoint(8, mid, 37, true);
+
+		if (temp > targetTemperature) {
+			bestWarmth = mid;
+			high = mid - 1;
+		} else {
+			low = mid + 1;
+		}
+	}
+
+	return bestWarmth;
+}
+window.getTargetWarmth = getTargetWarmth;
+
+DefineMacro("updatewarmthscale", () => {
+	// Read $worn-derived values synchronously, before the DOM update below defers to
+	// a later tick. The wardrobe preview system briefly swaps $worn to a draft outfit
+	// for the duration of a single synchronous render (see wardrobePreviewProjectCurrent
+	// / wardrobePreviewRestoreProjection in wardrobes.twee), then restores it. If these
+	// reads happened inside the deferred $(() => {...}) below instead, they'd run after
+	// that restore and silently show the real (pre-preview) warmth instead of the draft.
+	const currentWarmth = Weather.BodyTemperature.getWarmth();
+	const currentRestingPoint = Weather.BodyTemperature.getRestingPoint(8, currentWarmth, 37, true);
+	let newWarmth = null;
+	let newRestingPoint = null;
+	if (V.clothes_choice && T.realSlot && T.realIndex) {
+		const computedNewWarmth = currentWarmth - V.worn[T.realSlot].warmth + setup.clothes[T.realSlot][T.realIndex].warmth;
+		if (computedNewWarmth !== currentWarmth) {
+			newWarmth = computedNewWarmth;
+			newRestingPoint = Weather.BodyTemperature.getRestingPoint(8, newWarmth, 37, true);
+		}
+	}
+
+	$(() => {
+		const indicator = $("#warmthIndicator");
+		const indicatorNew = $("#warmthIndicatorNew");
+		clothingWarmthScale(indicator, currentRestingPoint);
+		indicator.tooltip({
+			message: "Warmth: " + currentWarmth,
+			delay: 200,
+			position: "cursor",
+		});
+		if (newWarmth !== null) {
+			indicatorNew.show();
+			clothingWarmthScale(indicatorNew, newRestingPoint);
+			indicator.tooltip({
+				message: "New warmth: " + newWarmth,
+				delay: 200,
+				position: "cursor",
+			});
+			return;
+		}
+		indicatorNew.hide();
+	});
+});

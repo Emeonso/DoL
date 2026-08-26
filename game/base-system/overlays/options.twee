@@ -12,7 +12,6 @@ IMPORTANT:
 		window.Theme.initControl();
 			onInputChanged(() => {
 				if(!T.optionsRefresh) T.optionsRefresh = true;
-				setTimeout(() => localStorage.setItem("dolSessionOptions", JSON.stringify(V.options)), 0);
 				if(T.globalThemeDefaults) Wikifier.wikifyEval("<<setFont true>>");
 			}, "options");
 	<</script>>
@@ -27,33 +26,20 @@ IMPORTANT:
 	<<if !_globalThemeDefaults>>
 		<<set _globalThemeDefaults to {}>>
 	<</if>>
-	<<if $debug is 1>>
-		/*<label><<checkbox "$notifyUpdate" false true autocheck>> Notify when there's a new game update available</label>
-		<br>*/
-		/*<<link "Check for updates">>
-			<<run checkNewVersion()>>
-		<</link>>
-		<br><br>*/
-	<</if>>
 	<div class="settingsGrid">
 		<div>
 			<<button "Save Current As Default">>
+				/* The stored key list comes from the settingsObjects registry rather than being
+				hand-listed here, so a newly added option is covered automatically. An explicit
+				undefined check keeps a legitimate false or 0 storable. */
 				<<set _toSaveDefaults to {}>>
-				<<if $options.general>><<set _toSaveDefaults.general to $options.general>><</if>>
-				<<if $options.dateFormat>><<set _toSaveDefaults.dateFormat to $options.dateFormat>><</if>>
-				<<if $options.fahrenheit>><<set _toSaveDefaults.fahrenheit to $options.fahrenheit>><</if>>
-				<<if $options.timestyle>><<set _toSaveDefaults.timestyle to $options.timestyle>><</if>>
-				<<if $options.mapMovement>><<set _toSaveDefaults.mapMovement to $options.mapMovement>><</if>>
-				<<if $options.mapLegacy>><<set _toSaveDefaults.mapLegacy to $options.mapLegacy>><</if>>
-				<<if $options.mapMarkers>><<set _toSaveDefaults.mapMarkers to $options.mapMarkers>><</if>>
-				<<if $options.mapTop>><<set _toSaveDefaults.mapTop to $options.mapTop>><</if>>
-				<<if $options.closeButtonMobile>><<set _toSaveDefaults.closeButtonMobile to $options.closeButtonMobile>><</if>>
-				<<if $options.passageCount>><<set _toSaveDefaults.passageCount to $options.passageCount>><</if>>
-				<<if $options.playtime>><<set _toSaveDefaults.playtime to $options.playtime>><</if>>
-				<<if $options.neverNudeMenus>><<set _toSaveDefaults.neverNudeMenus to $options.neverNudeMenus>><</if>>
-				<<if $options.autosaveDisabled>><<set _toSaveDefaults.autosaveDisabled to $options.autosaveDisabled>><</if>>
-				<<if $options.numberify_enabled>><<set _toSaveDefaults.numberify_enabled to $options.numberify_enabled>><</if>>
-				<<if $options.clothingReplacementWarning>><<set _toSaveDefaults.clothingReplacementWarning to $options.clothingReplacementWarning>><</if>>
+				<<run globalDefaultGeneralOptionKeys().forEach(key => {
+					if (V.options[key] !== undefined) T.toSaveDefaults[key] = V.options[key];
+				})>>
+				<<if $options.general isnot undefined>><<set _toSaveDefaults.general to $options.general>><</if>>
+				<<if $options.mapLegacy isnot undefined>><<set _toSaveDefaults.mapLegacy to $options.mapLegacy>><</if>>
+				<<if $options.fahrenheit isnot undefined>><<set _toSaveDefaults.fahrenheit to $options.fahrenheit>><</if>>
+				<<if $options.autosaveDisabled isnot undefined>><<set _toSaveDefaults.autosaveDisabled to $options.autosaveDisabled>><</if>>
 				<<run localStorage.setItem("dolDefaultGeneralSettings",JSON.stringify(_toSaveDefaults))>>
 				<<replace #customOverlayContent>><<optionsgeneral>><</replace>>
 			<</button>>
@@ -262,16 +248,12 @@ IMPORTANT:
 	<div class="settingsGrid">
 		<div>
 			<<button "Save Current As Default">>
+				/* An explicit undefined check, not truthiness: a line height or font size of 0
+				means "use the default" and is a real, storable value. */
 				<<set _toSaveDefaults to {}>>
-				<<if $options.theme>><<set _toSaveDefaults.theme to $options.theme>><</if>>
-				<<if $options.passageMaxWidth>><<set _toSaveDefaults.passageMaxWidth to $options.passageMaxWidth>><</if>>
-				<<if $options.passageLineHeight>><<set _toSaveDefaults.passageLineHeight to $options.passageLineHeight>><</if>>
-				<<if $options.overlayLineHeight>><<set _toSaveDefaults.overlayLineHeight to $options.overlayLineHeight>><</if>>
-				<<if $options.sidebarLineHeight>><<set _toSaveDefaults.sidebarLineHeight to $options.sidebarLineHeight>><</if>>
-				<<if $options.passageFontSize>><<set _toSaveDefaults.passageFontSize to $options.passageFontSize>><</if>>
-				<<if $options.overlayFontSize>><<set _toSaveDefaults.overlayFontSize to $options.overlayFontSize>><</if>>
-				<<if $options.sidebarFontSize>><<set _toSaveDefaults.sidebarFontSize to $options.sidebarFontSize>><</if>>
-				<<if $options.font>><<set _toSaveDefaults.font to $options.font>><</if>>
+				<<run globalDefaultThemeOptionKeys().forEach(key => {
+					if (V.options[key] !== undefined) T.toSaveDefaults[key] = V.options[key];
+				})>>
 				<<run localStorage.setItem("dolDefaultThemeSettings",JSON.stringify(_toSaveDefaults))>>
 				<<replace #customOverlayContent>><<optionstheme>><</replace>>
 			<</button>>

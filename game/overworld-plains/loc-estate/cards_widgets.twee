@@ -1197,7 +1197,6 @@ more suspicion if you actually lose the round. -->
 	</label>
 
 	<<run $(() => {
-		linkifyDivs('#card-cover-options');
 		$('#listbox-cardcovercolour').on('change', () => {
 			$('#card-cover-options').removeClass().addClass('clothes-' + $cardcover.colour)
 		});

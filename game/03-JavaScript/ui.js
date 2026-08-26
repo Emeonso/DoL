@@ -416,31 +416,16 @@ function onInputChanged(func, bindingKey = "default") {
 }
 window.onInputChanged = onInputChanged;
 
-// Capture option changes before individual widgets can stop propagation.
-// The deferred write allows SugarCube's own change handler to update V.options first.
-document.addEventListener(
-	"change",
-	event => {
-		if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement)) return;
-		if (!event.target.closest("#customOverlayContent")) return;
-		setTimeout(() => localStorage.setItem("dolSessionOptions", JSON.stringify(V.options)), 0);
-	},
-	true
-);
-
-let dolSessionOptionsRestored = false;
-function restoreCachedSessionOptions() {
-	if (dolSessionOptionsRestored || !V?.options) return;
-	try {
-		const cachedOptions = JSON.parse(localStorage.getItem("dolSessionOptions"));
-		if (cachedOptions) Object.assign(V.options, cachedOptions);
-	} catch (error) {
-		console.warn("Unable to restore cached options", error);
-	}
-	dolSessionOptionsRestored = true;
+// Options survive a refresh through SugarCube's session cache (see updateOptions
+// below) and travel between playthroughs through the "Save Current As Default"
+// buttons, which write dolDefaultGeneralSettings / dolDefaultThemeSettings. The
+// old browser-global dolSessionOptions cache did both jobs at once and leaked one
+// save's options into the next; drop any copy left over from that version.
+try {
+	localStorage.removeItem("dolSessionOptions");
+} catch (error) {
+	console.warn("Unable to clear the retired option cache", error);
 }
-
-$(document).on(":passagestart", restoreCachedSessionOptions);
 
 function closeOverlay() {
 	wikifier("journalNotesTextareaSave");
@@ -489,7 +474,6 @@ function updateOptions() {
 	if (T.currentOverlay === "options" && T.optionsRefresh && V.passage !== "Start") {
 		updatehistorycontrols();
 		const optionsData = clone(V.options);
-		localStorage.setItem("dolSessionOptions", JSON.stringify(optionsData));
 		const tmpButtons = T.buttons;
 		const tmpKey = T.key;
 
@@ -497,14 +481,17 @@ function updateOptions() {
 		V.options = optionsData;
 
 		// Options are deliberately excluded from gameplay history, but they still
-		// need to survive a page refresh through SugarCube's session cache.
+		// need to survive a page refresh through SugarCube's session cache. State.restore
+		// above re-activates a *clone* of the current history frame, and the session is
+		// marshalled from _history rather than that clone, so the assignment above never
+		// reaches the serialised state on its own. Patch every frame, not just the active
+		// one, so the history controls don't step back onto stale options.
 		const session = State.getSessionState();
 		if (session?.history?.length > 0) {
-			const sessionIndex = Math.min(session.index ?? session.history.length - 1, session.history.length - 1);
-			if (session.history[sessionIndex]?.variables) {
-				session.history[sessionIndex].variables.options = clone(optionsData);
-				State.setSessionState(session);
-			}
+			session.history.forEach(frame => {
+				if (frame?.variables) frame.variables.options = clone(optionsData);
+			});
+			State.setSessionState(session);
 		}
 
 		State.show();
