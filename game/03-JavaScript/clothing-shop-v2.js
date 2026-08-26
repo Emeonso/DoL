@@ -817,28 +817,42 @@ function getTargetWarmth(targetTemperature) {
 window.getTargetWarmth = getTargetWarmth;
 
 DefineMacro("updatewarmthscale", () => {
+	// Read $worn-derived values synchronously, before the DOM update below defers to
+	// a later tick. The wardrobe preview system briefly swaps $worn to a draft outfit
+	// for the duration of a single synchronous render (see wardrobePreviewProjectCurrent
+	// / wardrobePreviewRestoreProjection in wardrobes.twee), then restores it. If these
+	// reads happened inside the deferred $(() => {...}) below instead, they'd run after
+	// that restore and silently show the real (pre-preview) warmth instead of the draft.
+	const currentWarmth = Weather.BodyTemperature.getWarmth();
+	const currentRestingPoint = Weather.BodyTemperature.getRestingPoint(8, currentWarmth, 37, true);
+	let newWarmth = null;
+	let newRestingPoint = null;
+	if (V.clothes_choice && T.realSlot && T.realIndex) {
+		const computedNewWarmth = currentWarmth - V.worn[T.realSlot].warmth + setup.clothes[T.realSlot][T.realIndex].warmth;
+		if (computedNewWarmth !== currentWarmth) {
+			newWarmth = computedNewWarmth;
+			newRestingPoint = Weather.BodyTemperature.getRestingPoint(8, newWarmth, 37, true);
+		}
+	}
+
 	$(() => {
 		const indicator = $("#warmthIndicator");
 		const indicatorNew = $("#warmthIndicatorNew");
-		const currentWarmth = Weather.BodyTemperature.getWarmth();
-		clothingWarmthScale(indicator, Weather.BodyTemperature.getRestingPoint(8, currentWarmth, 37, true));
+		clothingWarmthScale(indicator, currentRestingPoint);
 		indicator.tooltip({
 			message: "Warmth: " + currentWarmth,
 			delay: 200,
 			position: "cursor",
 		});
-		if (V.clothes_choice && T.realSlot && T.realIndex) {
-			const newWarmth = currentWarmth - V.worn[T.realSlot].warmth + setup.clothes[T.realSlot][T.realIndex].warmth;
-			if (newWarmth !== currentWarmth) {
-				indicatorNew.show();
-				clothingWarmthScale(indicatorNew, Weather.BodyTemperature.getRestingPoint(8, newWarmth, 37, true));
-				indicator.tooltip({
-					message: "New warmth: " + newWarmth,
-					delay: 200,
-					position: "cursor",
-				});
-				return;
-			}
+		if (newWarmth !== null) {
+			indicatorNew.show();
+			clothingWarmthScale(indicatorNew, newRestingPoint);
+			indicator.tooltip({
+				message: "New warmth: " + newWarmth,
+				delay: 200,
+				position: "cursor",
+			});
+			return;
 		}
 		indicatorNew.hide();
 	});

@@ -1,7 +1,7 @@
 # Degrees of Lewdity — Source Workspace
 
 This repository is a working source tree for **Degrees of Lewdity**, a
-SugarCube/Twee browser game, currently based on version `0.6.3.2`. It is set
+SugarCube/Twee browser game, currently based on version `0.6.4`. It is set
 up for local development, patching, and modding: editing the Twee/JavaScript
 source, compiling it with Tweego, and validating changes before they're
 built into the playable HTML file.

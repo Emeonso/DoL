@@ -11,7 +11,7 @@ const StartConfig = {
 	debug: false,
 	enableImages: true,
 	enableLinkNumberify: true,
-	version: "0.6.3.2",
+	version: "0.6.4",
 	versionName: `"The Great Equaliser" edition`,
 	sneaky: false,
 	socialMediaEnabled: true,

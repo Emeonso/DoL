@@ -468,7 +468,7 @@
 			<</if>>
 		</div>
 	</div>
-	<<run linkifyDivs('#shopCategories')>>
+	<<run setTimeout(() => linkifyDivs('#shopCategories'), 0)>>
 <</widget>>
 
 <<widget "shopCategoryReplace">>
