@@ -356,6 +356,10 @@ const combatDynamicsConfig = Object.freeze({
 	maxHistory: 12,
 thresholds: Object.freeze({ low: 50, expected: 100, high: 180 }),
 	satisfactionDeltas: Object.freeze({ poor: -3, average: 1, exceeds: 5, overwhelming: 10 }),
+	/* Max points combatDynamicsPreferredRoll may shift a native $rng roll by.
+	 * Deliberately well under the roll range (0-99) so $enemyanger and native's
+	 * fixed thresholds can never be fully overridden by a maximally-favored target. */
+	rngSkewMax: 15,
 
 });
 
@@ -434,6 +438,71 @@ function combatDynamicsCandidates(npc) {
 		viable: true,
 		reason: "score above zero",
 	}));
+}
+
+/*
+ * Weighted-target profile seeding (plan: "Desire System Upgrade", Step 1).
+ * Reuses the NPC's already-rolled body-description index (the same index that
+ * drives penissize/breastsize in npc-generation.twee) as a position on a
+ * thin->heavy gradient, then scores each candidate by how close its target
+ * body part sits to that position on a least-sexual -> most-sexual spectrum.
+ * Purely additive: nothing below calls into combatDynamicsInit/Profile yet.
+ */
+const combatDynamicsBodyPositionConfig = Object.freeze({
+	/* Triangular falloff width: higher = flatter/more even weighting across targets. */
+	spread: 0.6,
+	/* Bounded per-target jitter so identical body-type indices aren't perfect clones. */
+	jitterMin: 0.85,
+	jitterMax: 1.15,
+	/* First-draft ordering, least -> most sexual. Trivial to retune: named constants only. */
+	targetPositions: Object.freeze({
+		feet: 0.00,
+		hands: 0.10,
+		thighs: 0.20,
+		chest: 0.30,
+		buttocks: 0.40,
+		mouth: 0.55,
+		vagina: 0.75,
+		penis: 0.75,
+		anus: 1.00,
+	}),
+});
+
+function combatDynamicsBodyPosition(bodyIndex, bodyCount) {
+	const count = Math.max(1, Number(bodyCount) || 1);
+	if (count <= 1) return 0;
+	return combatDynamicsClamp(Number(bodyIndex) / (count - 1), 0, 1);
+}
+
+function combatDynamicsTargetWeight(target, position) {
+	const anchor = combatDynamicsBodyPositionConfig.targetPositions[target];
+	/* Unknown target: neutral weight rather than zeroing it out of viability. */
+	if (anchor === undefined) return 1;
+	const spread = combatDynamicsBodyPositionConfig.spread;
+	const raw = Math.max(0, 1 - Math.abs(position - anchor) / spread);
+	const jitterRange = combatDynamicsBodyPositionConfig.jitterMax - combatDynamicsBodyPositionConfig.jitterMin;
+	const jitter = combatDynamicsBodyPositionConfig.jitterMin + Math.random() * jitterRange;
+	return raw * jitter;
+}
+
+/**
+ * Builds this NPC's candidate list with weighted (not flat) scores, seeded
+ * from the body-description index already rolled at generation time.
+ * @param {object} npc NPCList entry.
+ * @param {number} bodyIndex The `_i` index into whichever `_desc` array npc-generation.twee used for this NPC.
+ * @param {number} bodyCount The length of that same `_desc` array.
+ * @returns {Array} candidates, each with `score` weighted by target/body-type alignment.
+ */
+function combatDynamicsSeedCandidates(npc, bodyIndex, bodyCount) {
+	const candidates = combatDynamicsCandidates(npc);
+	const position = combatDynamicsBodyPosition(bodyIndex, bodyCount);
+	for (const candidate of candidates) {
+		const weight = combatDynamicsTargetWeight(candidate.target, position);
+		candidate.score = Math.max(0, Math.round(candidate.score * weight));
+		candidate.viable = candidate.score > 0;
+		candidate.reason = candidate.viable ? "score above zero" : "score depleted";
+	}
+	return candidates;
 }
 
 function combatDynamicsActiveCandidate(profile, index) {
@@ -716,10 +785,34 @@ function combatDynamicsPrepareNpcAction(index) {
 	return changed;
 }
 
-function combatDynamicsPreferredRoll(index, nativeRoll) {
-	/* Preserve the native RNG. Intent handoff is performed once before the
-	 * native action sections; this hook must never rewrite native branching. */
-	return nativeRoll;
+/*
+ * Desire System Upgrade, Step 2: activates this seam so desire skews the
+ * base RNG instead of passing it through unchanged. Bounded by design:
+ * $enemyanger and the native threshold this feeds are read and applied by
+ * the caller exactly as before -- this only shifts where the roll lands
+ * within checks native already runs. It never changes legality/availability
+ * and can never force a branch regardless of $enemyanger (see rngSkewMax).
+ */
+function combatDynamicsPreferredRollWeight(index, target) {
+	if (!combatDynamicsIsEligible() || !combatDynamicsEnsure()) return 0.5;
+	const state = combatDynamicsState();
+	if (!state || !state.enabled) return 0.5;
+	const profile = state.profiles[Number(index) || 0];
+	if (!profile || !Array.isArray(profile.candidates) || !profile.candidates.length) return 0.5;
+	const matches = profile.candidates.filter(candidate => candidate.target === target);
+	if (!matches.length) return 0.5;
+	const maxScore = Math.max(...profile.candidates.map(candidate => Number(candidate.score) || 0), 1);
+	const candidateScore = Math.max(...matches.map(candidate => Number(candidate.score) || 0));
+	/* Normalize against this NPC's own highest-scoring candidate so the skew
+	 * reflects relative preference, not an unbounded raw score. */
+	return combatDynamicsClamp(candidateScore / maxScore, 0, 1);
+}
+
+function combatDynamicsPreferredRoll(index, nativeRoll, target) {
+	if (!target) return nativeRoll;
+	const weight = combatDynamicsPreferredRollWeight(index, target);
+	const skew = (weight - 0.5) * 2 * combatDynamicsConfig.rngSkewMax;
+	return combatDynamicsClamp(Math.round(Number(nativeRoll) - skew), 0, 99);
 }
 
 function combatDynamicsClassForRelation(relation) {

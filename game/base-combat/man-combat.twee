@@ -5897,7 +5897,7 @@ Hands are 'inverted': NPC holds PC's left hand with their right one, and vice ve
 
 <<widget "penisinit">>
 	<<rng>>
-<<set $rng to combatDynamicsPreferredRoll(_n, $rng)>>
+<<set $rng to combatDynamicsPreferredRoll(_n, $rng, "penis")>>
 
 	<<if $gloryhole>>
 		The $NPCList[_n].penisdesc waits expectantly.
@@ -6333,7 +6333,7 @@ Hands are 'inverted': NPC holds PC's left hand with their right one, and vice ve
 
 <<widget "vaginainit">>
 	<<rng>>
-<<set $rng to combatDynamicsPreferredRoll(_n, $rng)>>
+<<set $rng to combatDynamicsPreferredRoll(_n, $rng, "vagina")>>
 
 	<<if $gloryhole>>
 		The pussy waits expectantly.
