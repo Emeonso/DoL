@@ -1359,6 +1359,26 @@
 	border-radius: 5px;
 }
 
+.warmth-scale-comfort-divider {
+	position: absolute;
+	top: -3px;
+	width: 2px;
+	height: 16px;
+	background: #fff;
+	opacity: 0.8;
+	transform: translateX(-50%);
+}
+
+/* 36.5°C on the indicator's 34-40°C domain: normalise(36.5, 40, 34) */
+.warmth-scale-comfort-divider-min {
+	left: 41.67%;
+}
+
+/* 37.5°C on the indicator's 34-40°C domain: normalise(37.5, 40, 34) */
+.warmth-scale-comfort-divider-max {
+	left: 58.33%;
+}
+
 .warmth-indicator {
 	position: absolute;
 	width: 30px;

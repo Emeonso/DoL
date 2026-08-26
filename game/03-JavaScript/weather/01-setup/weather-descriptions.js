@@ -223,4 +223,32 @@ setup.WeatherDescriptions = {
 			return "<span class='orange'>It's hot outside.</span>";
 		}
 	},
+	warmthGapText: gap => {
+		if (gap >= 15) return "You're overheating badly in these clothes.";
+		else if (gap >= 8) return "You're sweating heavily.";
+		else if (gap >= 4) return "You're feeling quite hot.";
+		else if (gap >= 1) return "You're feeling a bit hot.";
+		else if (gap <= -15) return "No amount of clothing seems able to keep the cold out.";
+		else if (gap <= -8) return "You're shivering badly.";
+		else if (gap <= -4) return "You're feeling quite cold.";
+		else if (gap <= -1) return "You're feeling a bit chilly.";
+		else return "You feel comfortable in what you're wearing.";
+	},
+	warmthComfort: () => {
+		const currentWarmth = Weather.BodyTemperature.getTotalWarmth();
+		const minWarmth = getTargetWarmth(36.5);
+		const maxWarmth = getTargetWarmth(37.5);
+
+		let gap = 0;
+		if (minWarmth === null) {
+			// Even maximum warmth (60) can't reach the comfortable band - unfixably cold.
+			gap = -Infinity;
+		} else if (maxWarmth !== null && currentWarmth > maxWarmth) {
+			gap = currentWarmth - maxWarmth;
+		} else if (currentWarmth < minWarmth) {
+			gap = -(minWarmth - currentWarmth);
+		}
+
+		return setup.WeatherDescriptions.warmthGapText(gap);
+	},
 };

@@ -1766,6 +1766,8 @@
 <<widget "warmthscale">>
 	<div class="warmth-scale-container">
 		<div class="warmth-scale-div"></div>
+		<div class="warmth-scale-comfort-divider warmth-scale-comfort-divider-min"></div>
+		<div class="warmth-scale-comfort-divider warmth-scale-comfort-divider-max"></div>
 		<img id="warmthIndicator" class="warmth-indicator" src="img/ui/clothes/warmth-indicator.png" />
 		<img id="warmthIndicatorNew" class="warmth-indicator-arrow" src="img/ui/clothes/small-arrow.png" />
 	</div>
