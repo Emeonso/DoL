@@ -6730,8 +6730,17 @@
 			Arousal: <<link "-10">><<run combatDynamicsDebugCommand("arousal", -10)>><<replace "#consensualNpcDynamicsDebugPanel">><<combatDynamicsDebugPanel>><</replace>><</link>> / <<link "+10">><<run combatDynamicsDebugCommand("arousal", 10)>><<replace "#consensualNpcDynamicsDebugPanel">><<combatDynamicsDebugPanel>><</replace>><</link>>
 		</div>
 		<div class="debug-npc-dynamics">
-			<div class="npc-debug-row"><span class="npc-debug-label">Encounter</span>: <<= _debugNpc.eligible ? "eligible" : "ineligible">> | Consensual <<= _debugNpc.encounter.consensual>> | Type <<= _debugNpc.encounter.enemyType>> | NPCs <<= _debugNpc.encounter.enemyCount>> | Dynamics <<= _debugNpc.state?.enabled ? "on" : "off">></div>
+			<div class="npc-debug-row"><span class="npc-debug-label">Encounter</span>: <<= _debugNpc.eligible ? "eligible" : "ineligible">> (no longer gated on consensual) | Consensual <<= _debugNpc.encounter.consensual>> | Type <<= _debugNpc.encounter.enemyType>> | NPCs <<= _debugNpc.encounter.enemyCount>> | Dynamics <<= _debugNpc.state?.enabled ? "on" : "off">></div>
 			<div class="npc-debug-row"><span class="npc-debug-label">NPC</span>: <<= _debugNpc.state ? (_debugNpc.npcs[_debugNpc.state.currentNpc]?.identity || "unknown") : "none">> | Index <<= _debugNpc.state?.currentNpc ?? "none">> | Anatomical sex <<= _debugNpc.profiles[_debugNpc.state?.currentNpc]?.anatomicalSex || "unknown">></div>
+			<div class="npc-debug-row"><span class="npc-debug-label">Body-type seed</span>:
+				<<set _debugCurrentDesire to _debugNpc.state ? _debugNpc.npcs[_debugNpc.state.currentNpc]?.desire : null>>
+				<<if _debugCurrentDesire && _debugCurrentDesire.bodyPosition !== null>>
+					Index <<= _debugCurrentDesire.bodyIndex>> / <<= _debugCurrentDesire.bodyCount>> | Position <<= Math.round(_debugCurrentDesire.bodyPosition * 100) / 100>> | rngSkewMax <<= _debugNpc.rngSkewMax>>
+					| Weights: <<for _debugWeightTarget range Object.keys(_debugCurrentDesire.targetWeights)>><<= _debugWeightTarget>> <<= _debugCurrentDesire.targetWeights[_debugWeightTarget]>> (skew <<= _debugCurrentDesire.rngSkew[_debugWeightTarget]>>) <</for>>
+				<<else>>
+					not generated with a cached body-type index (older save or non-generation-path NPC) -- falling back to flat scoring
+				<</if>>
+			</div>
 			<div class="npc-debug-row"><span class="npc-debug-label">Arousal</span>: <span class="npc-debug-value"><<= _debugNpc.arousal.current>> / <<= _debugNpc.arousal.maximum>> (<<= combatDynamicsDebugPercent(_debugNpc.arousal.current, 0, _debugNpc.arousal.maximum)>>%)</span> | Before turn <<= _debugNpc.arousal.beforeTurn ?? "none">></div>
 						<div class="npc-debug-row"><span class="npc-debug-label">Satisfaction</span>:
 				<<if _debugNpc.arousal.last>>

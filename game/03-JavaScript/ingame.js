@@ -940,16 +940,44 @@ function combatDynamicsDebugCommand(command, value) {
 
 function combatDynamicsDebugSnapshot() {
 	const state = combatDynamicsState();
-	const npcs = (V.NPCList || []).slice(0, Number(V.enemynomax || V.enemyno || V.NPCList?.length || 0)).map((npc, index) => ({
-		index,
-		identity: npc.fullDescription || npc.description || `NPC ${index}`,
-		traits: npc.traits || npc.sexualTraits || npc.sexTraits || null,
-		native: { lust: npc.lust, trust: npc.trust, rage: npc.rage, dom: npc.dom },
-		bodyparts: { penis: npc.penis, vagina: npc.vagina, mouth: npc.mouth, leftHand: npc.lefthand, rightHand: npc.righthand, headLocation: npc.location?.head, genitalLocation: npc.location?.genitals },
-	}));
+	const npcs = (V.NPCList || []).slice(0, Number(V.enemynomax || V.enemyno || V.NPCList?.length || 0)).map((npc, index) => {
+		const hasBodyIndex = Number.isFinite(Number(npc.desireBodyIndex)) && Number.isFinite(Number(npc.desireBodyCount)) && Number(npc.desireBodyCount) > 0;
+		const bodyPosition = hasBodyIndex ? combatDynamicsBodyPosition(Number(npc.desireBodyIndex), Number(npc.desireBodyCount)) : null;
+		return {
+			index,
+			identity: npc.fullDescription || npc.description || `NPC ${index}`,
+			traits: npc.traits || npc.sexualTraits || npc.sexTraits || null,
+			native: { lust: npc.lust, trust: npc.trust, rage: npc.rage, dom: npc.dom },
+			bodyparts: { penis: npc.penis, vagina: npc.vagina, mouth: npc.mouth, leftHand: npc.lefthand, rightHand: npc.righthand, headLocation: npc.location?.head, genitalLocation: npc.location?.genitals },
+			/* Desire System Upgrade, Step 7: surface the seeding inputs and the
+			 * per-target weights/skews they currently produce, for tuning
+			 * spread/rngSkewMax by observation instead of guesswork. */
+			desire: {
+				bodyIndex: hasBodyIndex ? Number(npc.desireBodyIndex) : null,
+				bodyCount: hasBodyIndex ? Number(npc.desireBodyCount) : null,
+				bodyPosition,
+				/* Reuse the already-seeded (stable) candidate weight rather than
+				 * recomputing the raw curve, which would apply fresh jitter on
+				 * every render and make the panel noisy. */
+				targetWeights: bodyPosition === null ? null : Object.fromEntries(
+					Object.keys(combatDynamicsBodyPositionConfig.targetPositions).map(target => [
+						target,
+						Math.round(combatDynamicsPreferredRollWeight(index, target) * 100) / 100,
+					])
+				),
+				rngSkew: bodyPosition === null ? null : Object.fromEntries(
+					Object.keys(combatDynamicsBodyPositionConfig.targetPositions).map(target => [
+						target,
+						Math.round((combatDynamicsPreferredRollWeight(index, target) - 0.5) * 2 * combatDynamicsConfig.rngSkewMax * 100) / 100,
+					])
+				),
+			},
+		};
+	});
 	return {
 		model: combatDynamicsConfig.version,
 		eligible: combatDynamicsIsEligible(),
+		rngSkewMax: combatDynamicsConfig.rngSkewMax,
 		encounter: { consensual: V.consensual, enemyType: V.enemytype, enemyCount: V.enemyno, combat: V.combat },
 		arousal: { current: V.enemyarousal, maximum: V.enemyarousalmax, beforeTurn: state?.turnStartArousal, last: state?.last || null },
 		state: state ? { enabled: state.enabled, turn: state.turn, turnOpen: state.turnOpen, currentNpc: state.currentNpc, currentIntent: state.currentIntent, pendingProposal: state.pendingProposal, fallbackResult: state.fallbackResult, lastDecision: state.lastDecision, lastTransitionReason: state.lastTransitionReason, lastAcceptance: state.lastAcceptance, lastInteraction: state.lastInteraction, forceNext: state.forceNext, intentCooldown: state.intentCooldown, intentDecision: state.intentDecision, history: state.history } : null,
