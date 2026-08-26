@@ -6699,17 +6699,11 @@
 <</widget>>
 
 
-<<widget "combatDynamicsInit">>
-	<<run combatDynamicsInit()>>
-<</widget>>
-
-<<widget "combatDynamicsBeginTurn">>
-	<<run combatDynamicsBeginTurn()>>
-<</widget>>
-
-<<widget "combatDynamicsFinishTurn">>
-	<<run combatDynamicsFinishTurn()>>
-<</widget>>
+<!-- Desire System Upgrade, Step 5: combatDynamicsInit/BeginTurn/FinishTurn's
+	widget wrappers were pure one-line indirection (<<run fn()>> and nothing
+	else) and have been removed; call sites in init.twee and actions.twee now
+	call the JS functions directly, the same way PrepareNpcAction/
+	ApplyDesiredTransition/PreferredRoll already did. -->
 <<widget "combatDynamicsDebugPanel">>
 	<<set _debugNpc to combatDynamicsDebugSnapshot()>>
 	<div class="debug-event-container">

@@ -2,7 +2,7 @@
 <<widget "actionsman">>
 	<<if $combatHaggle.pauseNow isnot true>>
 	<<exposure>>
-	<<combatDynamicsFinishTurn>><<combatDynamicsBeginTurn>>
+	<<run combatDynamicsFinishTurn()>><<run combatDynamicsBeginTurn()>>
 	<<set $face to 0>>
 
 	<<if $enemyno gte 2>>

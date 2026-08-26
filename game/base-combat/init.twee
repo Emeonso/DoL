@@ -939,7 +939,7 @@
 	<<resetLastOptions>>
 	<<getCombatDefaultsType>>
 	<<wetnessCalculate>>
-	<<combatDynamicsInit>>
+	<<run combatDynamicsInit()>>
 <</widget>>
 
 <<widget "man">>
