@@ -496,7 +496,7 @@
 	})>>
 	<<run setTimeout(() => { linkifyDivs("#wardrobePaperDoll"); linkifyDivs("#wardrobeGridList"); }, 0)>>
 <</widget>>
-<<widget "wardrobeRightSummary">><span>Warmth:</span><<wardrobePreviewRenderSummary>><</widget>>
+<<widget "wardrobeRightSummary">><div class="wardrobe-warmth-header"><span>Warmth:</span><span class="wardrobe-outside-temp teal"><<print Weather.toSelectedString(Weather.temperature, 0)>></span></div><<wardrobePreviewRenderSummary>><</widget>>
 <<widget "attractivenessscale">>
 	<<calculateallure>>
 	<div id="attractivenessScale" class="warmth-scale-container attractiveness-scale" aria-label="Attractiveness rating scale">
