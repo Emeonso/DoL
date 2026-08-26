@@ -198,10 +198,10 @@ Debugging:
 		<<addLayerDialog>>
 	<</if>>
 
-	<<canvasCombatEditor>>
-
 	<!-- Centres the inner grid -->
-	<div class="d-flex flex-row flex-centre flex-wrap">
+	<div class="d-flex flex-row flex-centre flex-wrap main-passage-visual" data-main-passage-visual>
+		<<canvasCombatEditor>>
+
 		<!-- Organises canvas windows into a grid -->
 		<div class="combat-grid d-grid">
 

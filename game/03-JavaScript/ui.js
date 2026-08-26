@@ -415,6 +415,32 @@ function onInputChanged(func, bindingKey = "default") {
 }
 window.onInputChanged = onInputChanged;
 
+// Capture option changes before individual widgets can stop propagation.
+// The deferred write allows SugarCube's own change handler to update V.options first.
+document.addEventListener(
+	"change",
+	event => {
+		if (!(event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement)) return;
+		if (!event.target.closest("#customOverlayContent")) return;
+		setTimeout(() => localStorage.setItem("dolSessionOptions", JSON.stringify(V.options)), 0);
+	},
+	true
+);
+
+let dolSessionOptionsRestored = false;
+function restoreCachedSessionOptions() {
+	if (dolSessionOptionsRestored || !V?.options) return;
+	try {
+		const cachedOptions = JSON.parse(localStorage.getItem("dolSessionOptions"));
+		if (cachedOptions) Object.assign(V.options, cachedOptions);
+	} catch (error) {
+		console.warn("Unable to restore cached options", error);
+	}
+	dolSessionOptionsRestored = true;
+}
+
+$(document).on(":passagestart", restoreCachedSessionOptions);
+
 function closeOverlay() {
 	wikifier("journalNotesTextareaSave");
 	updateOptions();
@@ -462,11 +488,24 @@ function updateOptions() {
 	if (T.currentOverlay === "options" && T.optionsRefresh && V.passage !== "Start") {
 		updatehistorycontrols();
 		const optionsData = clone(V.options);
+		localStorage.setItem("dolSessionOptions", JSON.stringify(optionsData));
 		const tmpButtons = T.buttons;
 		const tmpKey = T.key;
 
 		if (!State.restore(true)) return; // don't do anything if state couldn't be restored
 		V.options = optionsData;
+
+		// Options are deliberately excluded from gameplay history, but they still
+		// need to survive a page refresh through SugarCube's session cache.
+		const session = State.getSessionState();
+		if (session?.history?.length > 0) {
+			const sessionIndex = Math.min(session.index ?? session.history.length - 1, session.history.length - 1);
+			if (session.history[sessionIndex]?.variables) {
+				session.history[sessionIndex].variables.options = clone(optionsData);
+				State.setSessionState(session);
+			}
+		}
+
 		State.show();
 
 		T.key = tmpKey;

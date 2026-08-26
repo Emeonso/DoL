@@ -1,0 +1,73 @@
+{
+  "recipe": "devTools\\sprite-workbench-demo\\sprite_workbench_demo.json",
+  "canvas": {
+    "width": 256,
+    "height": 128
+  },
+  "layers": [
+    {
+      "name": "body",
+      "path": "devTools\\sprite-workbench-demo\\..\\..\\img\\body\\base-classic.png",
+      "size": [
+        256,
+        128
+      ],
+      "x": 0,
+      "y": 0,
+      "opacity": 1.0
+    },
+    {
+      "name": "head",
+      "path": "devTools\\sprite-workbench-demo\\..\\..\\img\\body\\base-head.png",
+      "size": [
+        256,
+        128
+      ],
+      "x": 0,
+      "y": 0,
+      "opacity": 1.0
+    },
+    {
+      "name": "hair-sides",
+      "path": "devTools\\sprite-workbench-demo\\..\\..\\img\\hair\\sides\\default\\short.png",
+      "size": [
+        256,
+        128
+      ],
+      "x": 0,
+      "y": 0,
+      "opacity": 1.0
+    },
+    {
+      "name": "hair-fringe",
+      "path": "devTools\\sprite-workbench-demo\\..\\..\\img\\hair\\fringe\\default\\short.png",
+      "size": [
+        256,
+        128
+      ],
+      "x": 0,
+      "y": 0,
+      "opacity": 1.0
+    }
+  ],
+  "edits": 2,
+  "edit_operation_pixel_counts": [
+    250,
+    1
+  ],
+  "composite_nontransparent_bounds": [
+    45,
+    15,
+    201,
+    93
+  ],
+  "grid_layer": "hair-fringe",
+  "outputs": [
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\demo-inspection\\composite.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\custom-fringe.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\demo-inspection\\composite-8x.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\demo-inspection\\layers-contact-sheet.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\demo-inspection\\hair-fringe-pixel-grid.txt",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\demo-inspection\\report.json"
+  ]
+}

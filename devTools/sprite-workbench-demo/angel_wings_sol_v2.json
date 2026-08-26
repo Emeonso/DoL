@@ -1,0 +1,41 @@
+{
+  "canvas": {"width": 256, "height": 128},
+  "layers": [
+    {"name": "sol-wings-v2", "new": true, "size": [256, 128]},
+    {"name": "body", "path": "../../img/body/base-classic.png"},
+    {"name": "head", "path": "../../img/body/base-head.png"},
+    {"name": "hair-sides", "path": "../../img/hair/sides/default/short.png"},
+    {"name": "hair-fringe", "path": "../../img/hair/fringe/default/short.png"}
+  ],
+  "edits": [
+    {"op": "feather", "layer": "sol-wings-v2", "root": [32,40], "control": [22,48], "tip": [12,58], "root_width": 2.0, "mid_width": 4.1, "colour": "#dce4edff", "outline": "#536176ff", "highlight": "#ffffffff"},
+    {"op": "feather", "layer": "sol-wings-v2", "root": [34,42], "control": [24,54], "tip": [16,66], "root_width": 2.0, "mid_width": 4.3, "colour": "#f1f5f9ff", "outline": "#536176ff", "highlight": "#ffffffff"},
+    {"op": "feather", "layer": "sol-wings-v2", "root": [37,44], "control": [29,59], "tip": [23,72], "root_width": 2.0, "mid_width": 4.2, "colour": "#dce4edff", "outline": "#536176ff", "highlight": "#ffffffff"},
+    {"op": "feather", "layer": "sol-wings-v2", "root": [40,45], "control": [36,61], "tip": [32,74], "root_width": 2.0, "mid_width": 4.0, "colour": "#f1f5f9ff", "outline": "#536176ff", "highlight": "#ffffffff"},
+    {"op": "feather", "layer": "sol-wings-v2", "root": [44,46], "control": [42,61], "tip": [42,72], "root_width": 2.0, "mid_width": 3.7, "colour": "#dce4edff", "outline": "#536176ff", "highlight": "#ffffffff"},
+
+    {"op": "feather", "layer": "sol-wings-v2", "root": [39,40], "control": [29,49], "tip": [19,57], "root_width": 2.2, "mid_width": 3.8, "colour": "#f8fafcff", "outline": "#75849aff", "highlight": "#ffffffff"},
+    {"op": "feather", "layer": "sol-wings-v2", "root": [44,42], "control": [34,51], "tip": [26,62], "root_width": 2.2, "mid_width": 3.8, "colour": "#e8eef5ff", "outline": "#75849aff", "highlight": "#ffffffff"},
+    {"op": "feather", "layer": "sol-wings-v2", "root": [49,44], "control": [41,54], "tip": [35,66], "root_width": 2.2, "mid_width": 3.7, "colour": "#f8fafcff", "outline": "#75849aff", "highlight": "#ffffffff"},
+    {"op": "feather", "layer": "sol-wings-v2", "root": [54,47], "control": [48,57], "tip": [45,67], "root_width": 2.3, "mid_width": 3.4, "colour": "#e8eef5ff", "outline": "#75849aff", "highlight": "#ffffffff"},
+
+    {"op": "polygon", "layer": "sol-wings-v2", "points": [[59,55],[54,50],[47,42],[39,34],[32,29],[27,35],[34,41],[43,47],[52,54],[57,59]], "colour": "#c2cedcff"},
+    {"op": "line", "layer": "sol-wings-v2", "points": [[59,55],[54,50],[47,42],[39,34],[32,29],[27,35]], "colour": "#536176ff", "width": 1},
+    {"op": "polygon", "layer": "sol-wings-v2", "points": [[58,52],[52,47],[45,40],[37,34],[31,31],[36,37],[45,44],[54,53]], "colour": "#eef3f8ff"},
+
+    {"op": "feather", "layer": "sol-wings-v2", "root": [56,52], "control": [48,44], "tip": [40,37], "root_width": 2.1, "mid_width": 3.1, "colour": "#ffffffff", "outline": "#97a5b8ff", "highlight": "#ffffffff"},
+    {"op": "feather", "layer": "sol-wings-v2", "root": [57,55], "control": [49,50], "tip": [40,46], "root_width": 2.1, "mid_width": 3.1, "colour": "#f8fafcff", "outline": "#97a5b8ff", "highlight": "#ffffffff"},
+    {"op": "feather", "layer": "sol-wings-v2", "root": [57,58], "control": [49,56], "tip": [41,55], "root_width": 2.1, "mid_width": 3.0, "colour": "#ffffffff", "outline": "#97a5b8ff", "highlight": "#ffffffff"},
+    {"op": "mirror", "layer": "sol-wings-v2", "box": [8,24,62,78], "target_x": 66},
+    {"op": "copy", "layer": "sol-wings-v2", "box": [0,0,128,128], "target_x": 128, "target_y": 0}
+  ],
+  "output": "output/sol-v2-composite.png",
+  "output_mode": "RGBA",
+  "inspection_dir": "output/sol-v2-inspection",
+  "inspection_scale": 8,
+  "contact_scale": 2,
+  "grid_layer": "sol-wings-v2",
+  "exports": [
+    {"layer": "sol-wings-v2", "path": "output/sol-v2-angel-wings-game-ready.png", "mode": "RGBA"}
+  ]
+}

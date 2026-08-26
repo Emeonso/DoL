@@ -1389,6 +1389,7 @@ function settingsObjects(type) {
 					sidebarStats: { strings: ["disabled", "limited", "all"], displayName: "Closed sidebar stats:" },
 					sidebarTime: { strings: ["disabled", "top", "bottom"], displayName: "Closed sidebar time:" },
 					combatControls: { strings: ["radio", "columnRadio", "lists", "limitedLists"], displayName: "Combat controls:" },
+					mainPassageVisualLayout: { strings: ["single", "split"], displayName: "Main passage visual layout:" },
 					mapMovement: { bool: true, displayName: "Enable movement by clicking on map:" },
 					mapTop: { bool: true, displayName: "Move the map above the map links:" },
 					mapMarkers: { bool: true, displayName: "Show clickable areas on maps:" },
