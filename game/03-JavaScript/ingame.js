@@ -379,7 +379,17 @@ function combatDynamicsDebugEnabled() {
 }
 
 function combatDynamicsIsEligible() {
-	return V && V.consensual === 1 && V.combat === 1 && V.enemytype === "man" && !V.npcSub && !V.gloryhole && Array.isArray(V.NPCList) && Number(V.enemyno || 0) > 0;
+	/* Desire System Upgrade, Step 4: no longer gated on V.consensual -- the
+	 * state-reset nudge and RNG skew now apply during non-consensual
+	 * encounters too. Legality/availability and $enemyanger's suppressive
+	 * effect are untouched by this; only which already-legal branch gets
+	 * preferred shifts. The separate combatAgency* "ask"/"direct" layer keeps
+	 * its own independent V.consensual !== 1 checks (unchanged by this) --
+	 * player-initiated propositions stay a consensual-combat concept.
+	 * No named-NPC exclusion existed here before this change and none is
+	 * added now; whatever currently applies to named "man"-type NPCs
+	 * continues to apply unchanged. */
+	return V && V.combat === 1 && V.enemytype === "man" && !V.npcSub && !V.gloryhole && Array.isArray(V.NPCList) && Number(V.enemyno || 0) > 0;
 }
 
 function combatDynamicsNpcAnatomy(npc) {
