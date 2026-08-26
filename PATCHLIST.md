@@ -79,12 +79,16 @@ school shop, forest shop, adult shop, beach stall).
   no visible failure) but silently did nothing. `wardrobes.twee` already had the
   correct fix for this exact utility (wrap the call in
   `setTimeout(() => ..., 0)` so it runs after the new DOM actually exists) — applied
-  the same pattern to every call site in this file. The same latent bug likely
-  exists in a handful of other files that call `linkifyDivs` unwrapped
-  (`children.twee`, `scene-viewer.twee`, `clothingCategories-v2.twee`,
-  `cards_widgets.twee`, and the `.button-back-to-shop` calls in the other shop
-  files) — not fixed here since only the clothing shop was reported broken, but
-  worth the same treatment if they turn out to be broken too.
+  the same pattern to every call site in this file.
+- Swept the rest of the codebase for the same unwrapped-`linkifyDivs` pattern and
+  applied the identical fix to every remaining bare call site: `game/base-clothing/school-shop.twee`,
+  `game/overworld-forest/loc-forestshop/shop.twee`, `game/overworld-town/loc-adultshop/shop.twee`,
+  `game/overworld-town/loc-beach/balloon.twee`, `game/overworld-town/loc-shop/clothing.twee`
+  (legacy shop), `game/overworld-town/loc-shop/clothingCategories-v2.twee`,
+  `game/base-system/pregnancy/children.twee`, `game/base-debug/scene-viewer.twee`.
+  `game/overworld-plains/loc-estate/cards_widgets.twee`'s call was already correctly
+  deferred via jQuery's `$(() => {...})` ready-shorthand (same effective behaviour
+  as `setTimeout(..., 0)` once the document has loaded), so it was left as-is.
 
 ## Build / version bookkeeping
 - Version bumped to `0.6.3.1` (`game/01-config/sugarcubeConfig.js`, `README.md`,
