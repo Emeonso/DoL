@@ -66,6 +66,26 @@ school shop, forest shop, adult shop, beach stall).
   convention (green = comfortable, teal/blue = cold side, orange/red = hot side),
   matching `setup.WeatherDescriptions.shop()`/`extremeTemperature()`.
 
+### Fix clothing shop icon buttons (colour swatches, filters, etc.) not responding to clicks
+- `game/overworld-town/loc-shop/clothing-v2.twee` — all 10 `<<run linkifyDivs(...)>>`
+  call sites. Pre-existing bug (predates this branch, traced to the original repo
+  import commit). `linkifyDivs()` (`game/03-JavaScript/clothing-shop-v2.js`) binds
+  click handlers to whichever `.div-link` elements are selectable *at call time*.
+  Every call in this file ran synchronously as part of SugarCube's widget/passage
+  expansion, which builds the entire output as a string *before* it's inserted into
+  the live DOM — so the selector always found nothing, and the elements (colour
+  swatches, filter/options buttons, the mannequin panel, etc.) never got their click
+  handlers wired up. Clicking them looked like a normal button (no console error,
+  no visible failure) but silently did nothing. `wardrobes.twee` already had the
+  correct fix for this exact utility (wrap the call in
+  `setTimeout(() => ..., 0)` so it runs after the new DOM actually exists) — applied
+  the same pattern to every call site in this file. The same latent bug likely
+  exists in a handful of other files that call `linkifyDivs` unwrapped
+  (`children.twee`, `scene-viewer.twee`, `clothingCategories-v2.twee`,
+  `cards_widgets.twee`, and the `.button-back-to-shop` calls in the other shop
+  files) — not fixed here since only the clothing shop was reported broken, but
+  worth the same treatment if they turn out to be broken too.
+
 ## Build / version bookkeeping
 - Version bumped to `0.6.3.1` (`game/01-config/sugarcubeConfig.js`, `README.md`,
   `compile.bat`); compiled output renamed to `Degrees of Lewdity 0.6.3.1.html`.
