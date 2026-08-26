@@ -9,10 +9,9 @@ built into the playable HTML file.
 > **Content note:** Degrees of Lewdity is an adult (18+) game with explicit
 > sexual content. This repository contains its full source, including
 > content of that nature.
->
-> **TODO
-> Cleanup wardrobe button buttons
-> Add custom outfit button and menu
+
+See [`TODO.md`](TODO.md) for queued-up future work, and
+[`PATCHLIST.md`](PATCHLIST.md) for a log of source changes made on this branch.
 
 ## Repository layout
 
