@@ -204,17 +204,30 @@ function clothingSlotToIconName(slotName, outfits) {
 }
 window.clothingSlotToIconName = clothingSlotToIconName;
 
-// Make .divs-links clickable as if they're anchors
-function linkifyDivs(parentSelector = "") {
-	const divLinks = $(parentSelector + " .div-link");
-	divLinks.off("click.linkifyDivs").on("click.linkifyDivs", function (e) {
+/*
+	Make .div-link elements clickable as if they're anchors.
+
+	Bound once, delegated from the document, rather than re-bound against each freshly
+	rendered container. Direct binding had to happen after the markup reached the live
+	DOM, so every call site needed its own deferral - and any new .div-link markup that
+	forgot one silently did nothing, with no error to point at it. Delegation makes that
+	failure mode impossible.
+
+	The inner ".div-link a" handler still suppresses the outer one: jQuery builds its
+	delegated handler queue from the event target outward and honours
+	isPropagationStopped() between levels, so nesting behaves as it did before.
+*/
+$(document)
+	.on("click.linkifyDivs", ".div-link a", function (e) {
+		e.stopPropagation();
+	})
+	.on("click.linkifyDivs", ".div-link", function (e) {
 		if ($(e.target).closest("a").length) return;
 		$(this).find("a").first().click();
 	});
-	divLinks.find("a").off("click.linkifyDivs").on("click.linkifyDivs", function (e) {
-		e.stopPropagation();
-	});
-}
+
+/* Retained as a no-op so existing and third-party call sites keep working. */
+function linkifyDivs() {}
 window.linkifyDivs = linkifyDivs;
 
 // Hook custom colour sliders and preset dropdowns
@@ -827,7 +840,7 @@ DefineMacro("updatewarmthscale", () => {
 	const currentRestingPoint = Weather.BodyTemperature.getRestingPoint(8, currentWarmth, 37, true);
 	let newWarmth = null;
 	let newRestingPoint = null;
-	if (V.clothes_choice && T.realSlot && T.realIndex) {
+	if (V.clothes_choice && T.realSlot != null && T.realIndex != null) {
 		const computedNewWarmth = currentWarmth - V.worn[T.realSlot].warmth + setup.clothes[T.realSlot][T.realIndex].warmth;
 		if (computedNewWarmth !== currentWarmth) {
 			newWarmth = computedNewWarmth;
@@ -847,7 +860,7 @@ DefineMacro("updatewarmthscale", () => {
 		if (newWarmth !== null) {
 			indicatorNew.show();
 			clothingWarmthScale(indicatorNew, newRestingPoint);
-			indicator.tooltip({
+			indicatorNew.tooltip({
 				message: "New warmth: " + newWarmth,
 				delay: 200,
 				position: "cursor",

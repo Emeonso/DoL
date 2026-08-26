@@ -97,7 +97,6 @@
 			<<clothingcategoryicon "feet">>
 			<<link "View Shoes">><<replace "#clothingShop-div">><<FeetShop>><</replace>><</link>>
 			<br><br>
-			<<run setTimeout(() => linkifyDivs('.button-back-to-shop'), 0)>>
 
 			/*<<if $clothingrebuy is 1>>
 				[[Disable automatic clothing rebuy|Rebuy Shop]]

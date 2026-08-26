@@ -126,7 +126,7 @@
 								<<set _gameTime to getSavedGameTime(_saveData.autosave)>>
 								<div class="saveGameTime">
 									<<if _gameTime>>
-										<span><<print getFormattedDate(_gameTime.date)>></span>
+										<span><<print getShortFormattedDate(_gameTime.date) + " " + _gameTime.date.year>></span>
 										<span><<print ampm(_gameTime.date.hour, _gameTime.date.minute)>></span>
 										<span class="saveDays">Day <<print _gameTime.days>></span>
 									<</if>>
@@ -194,7 +194,7 @@
 								<<set _gameTime to getSavedGameTime(_saveData.slots[_slot])>>
 								<div class="saveGameTime">
 									<<if _gameTime>>
-										<span><<print getFormattedDate(_gameTime.date)>></span>
+										<span><<print getShortFormattedDate(_gameTime.date) + " " + _gameTime.date.year>></span>
 										<span><<print ampm(_gameTime.date.hour, _gameTime.date.minute)>></span>
 										<span class="saveDays">Day <<print _gameTime.days>></span>
 									<</if>>

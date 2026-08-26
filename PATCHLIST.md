@@ -1,9 +1,160 @@
-# 0.6.3.1 Patchlist
+# Patchlist
 
-Running log of source changes made on the `0.6.3.1` branch. Entries are added as
-work happens; each lists the files touched and what changed. Build/version
-bookkeeping (version bump, compiled-output rename, build artifact housekeeping) is
-kept separate from gameplay/UI changes for clarity.
+Running log of source changes made on this branch. Entries are added as work
+happens; each lists the files touched and what changed. Build/version bookkeeping
+(version bump, compiled-output rename, build artifact housekeeping) is kept
+separate from gameplay/UI changes for clarity.
+
+# 0.6.4
+
+Bug and optimisation sweep. Findings came from `widget_check.py` (3 unresolved
+macros, now 0), a filtered `macro_check.py` pass, and a review of the branch's own
+recent changes.
+
+## Content and correctness fixes
+
+### Repair the corrupted `Beach Phallus Prude` passage
+- `game/overworld-town/loc-beach/phallus-project.twee` — the passage, reachable in
+  normal play from `loc-beach/widgets.twee` ("Ask to measure ..." behind
+  `<<promiscuous3>>`), carried three separate defects. `<<passeif $molestationstart
+  is 1>>` was merge damage that fused `<<pass 15>>` and `<<if>>`, so SugarCube
+  rendered an unknown-macro error in the passage body. Following it was a block of
+  unrelated combat boilerplate (`<<controlloss>>`, `<<molested>>`, `<<maninit>>`,
+  `<<man>>`, `<<actionsman>>`) linking to `Chalets Work One Sex` — a different
+  scene entirely — inside an `<<if>>` that was never opened or closed. And the
+  `<<beachicon>>` "Stop" exit that every sibling passage has was missing. Restored
+  to match its siblings `Beach Phallus Birdwatcher Decline` and
+  `Beach Phallus Old`.
+
+### Attach the "New warmth" tooltip to the preview marker
+- `game/03-JavaScript/clothing-shop-v2.js` — `updatewarmthscale()`. In the
+  `newWarmth !== null` branch the second `.tooltip()` call targeted `indicator`,
+  the *current* warmth marker, instead of `indicatorNew`. Hovering the current
+  marker reported the previewed warmth and the preview marker had no tooltip at
+  all. Pre-existing; affects the wardrobe and all six clothing-shop screens.
+
+### Stop dropping the warmth preview for clothing index 0
+- `game/03-JavaScript/clothing-shop-v2.js` — the guard was
+  `V.clothes_choice && T.realSlot && T.realIndex`. `T.realIndex` comes from
+  `_temp_choice.index`, and index `0` is a real entry (the `naked` item in
+  `clothing-upper.js`), so a truthiness test silently skipped the preview for it.
+  Now an explicit `!= null` check on both fields.
+
+### Remove the vestigial `fencingtease` branch
+- `game/base-combat/effects.twee` — the `$penisaction is "fencingtease"` branch
+  called `<<actionsfencingtease>>`, which does not exist. This was leftover rather
+  than disconnected content: the menu builder `actionspenisPenisFencing`
+  (`actions-penis.twee`) never offers it, so `$penisaction` can never take that
+  value; no prose widget for it exists in `actions-text.twee` alongside its three
+  siblings; and `ingame.js`'s agency classification lists do not mention it.
+  Writing the widget would mean authoring new content plus a new menu option, so
+  the dead branch was removed instead.
+
+### Add the missing `OverTopShop` category widget
+- `game/overworld-town/loc-shop/clothingCategories-v2.twee` — the category widgets
+  follow a strict slot/filter pattern (`OutfitShop` = upper/outfits, `TopShop` =
+  upper/non-outfits, `OverOutfitShop` = over_upper/outfits), and the
+  over_upper/non-outfits member was never written. As a result non-outfit
+  over-upper stock was unreachable by category in every shop, and the live caller
+  in `loc-adultshop/shop.twee` (behind `$debug is 1`) errored. Added by mirroring
+  `OverOutfitShop` with the filter changed to `"non-outfits"`.
+- The commented-out over-clothing links in `overworld-forest/loc-forestshop/shop.twee`
+  were left as they are: no over-clothing item lists `"forest"` in its `shop` array,
+  so those links would open empty pages, and `AllShop` reaches any stock anyway.
+
+## Options persistence
+
+Root cause of "settings don't save": `updateOptions()` calls `State.restore(true)`,
+whose soft restore does `_active = clone(_history[_activeIndex])`. `V` then points
+at a clone detached from the history frame, so the following `V.options =
+optionsData` never reaches `_history`. SugarCube marshals the session from
+`_history` in a `beforeunload` handler and never from `_active`, so changing
+options and refreshing before navigating a passage lost them.
+
+### Write options into every session frame
+- `game/03-JavaScript/ui.js` — `updateOptions()` patched only
+  `session.history[sessionIndex]`. Now iterates every frame before
+  `State.setSessionState()`, matching the save-count idiom in `save.js`, so the
+  history back/forward controls no longer step onto stale options.
+
+### Drop the browser-global option cache
+- `game/01-config/sugarcubeConfig.js`, `game/03-JavaScript/ui.js`,
+  `game/base-system/overlays/options.twee` — the `dolSessionOptions` localStorage
+  cache was merged into every history frame of any save being loaded. That hook
+  (`Save.onLoad`) fires on slot loads and imports but not on F5 restore, so it was
+  not what made refresh work — it just meant loading save B after playing save A
+  gave B the options from A, and importing someone else's save rewrote theirs.
+  Removed the merge in `onLoad()`, the `:passagestart` restore and capture-phase
+  `change` listener in `ui.js`, and the write in the `onInputChanged` callback. A
+  one-time `removeItem` clears the retired key for existing players.
+
+### Make "Save Current As Default" cover the options it should
+- `game/03-JavaScript/save.js` — added `globalDefaultGeneralOptionKeys()`,
+  `globalDefaultThemeOptionKeys()` and `applyGlobalDefaultOptions()`. The general
+  allowlist is now derived from the existing `settingsObjects("general").options`
+  registry (minus debug tooling, per-save state, and theme-owned keys) rather than
+  hand-listed, so a newly added option is covered automatically. It grew from 15
+  keys to 50 — `images`, `silhouetteEnabled`, `combatControls`, `maxStates`,
+  `mainPassageVisualLayout` and many others previously had no defaults path at all.
+- `game/base-system/overlays/options.twee` — both "Save Current As Default"
+  buttons guarded each field with `<<if $options.X>>`, so a `false` was never
+  stored, and a theme line-height or font-size of `0` (which means "use default")
+  could not be stored either. Both now test `isnot undefined`.
+- `game/04-Variables/variables-start.twee` — the read side used
+  `_globalGeneralDefaults.X or Y`; SugarCube `or` is `||`, so even a correctly
+  stored `false` resolved back to the built-in default. The inline fallbacks are
+  gone; the literal holds plain defaults and a single validated pass applies the
+  stored ones, checked against the registry via `validateValue` so a stale or
+  corrupt value is ignored rather than written in.
+
+## Optimisations
+
+### Gate the save-list decorator to the saves overlay
+- `game/03-JavaScript/save-list-idb.js` — the module ran a `MutationObserver` on
+  `document.body` with `subtree: true` plus a `setInterval(..., 500)` for the whole
+  session, to decorate an overlay that is open rarely. The observer fired on
+  essentially every DOM mutation the game makes. `#saves-list-container` is
+  rendered by the bundled `idb-backend` plugin in the story format, so there is no
+  render hook to call, but the watch can be scoped: one attribute-filtered observer
+  on `#customOverlay` starts a `#customOverlayContent` observer when `data-overlay`
+  becomes `"saves"` and `:oncloseoverlay` stops it. The interval is gone. Also
+  fixed the reentrancy guard, which set `dataset.gameTimeReady = "pending"` but
+  only tested for `"true"`, letting overlapping calls both hit IndexedDB.
+
+### Replace the deferred `linkifyDivs` calls with event delegation
+- `game/03-JavaScript/clothing-shop-v2.js` plus 13 `.twee` files — `linkifyDivs()`
+  bound click handlers to whichever `.div-link` elements existed at call time, so
+  every call site needed its own `setTimeout(..., 0)` to run after the markup
+  reached the live DOM, and any new markup that forgot one silently did nothing.
+  Replaced with two handlers delegated from `document` (`.div-link a` for
+  propagation, `.div-link` for forwarding), bound once at load. Nesting behaves as
+  before, since jQuery builds its delegated queue from the target outward and
+  honours `isPropagationStopped()` between levels. All 23 call sites removed;
+  `linkifyDivs()` is retained as a no-op shim for compatibility.
+
+### Unify the save-list date format
+- `game/base-system/overlays/saves.twee` — the Twee path printed
+  `getFormattedDate()` ("the 4th of September", no year) while the IndexedDB path
+  in `save-list-idb.js` printed the short form plus year ("4th Sep 2022"), so the
+  same column read differently depending on the player's storage backend. Both now
+  use the short form plus year.
+
+### Remove the dead version-check module
+- Deleted `game/03-JavaScript/new-version-check.js` and its orphaned
+  `#new-version-notification` CSS block in `modules/css/base.css`, plus the
+  commented-out debug stub in `options.twee` that was its only caller. The module
+  early-returned on `!window.testCheckNewVersion` so none of it ran; it also called
+  a `<<newversionnotification>>` widget that does not exist and compared versions
+  with `>` on strings, so `"0.6.10" > "0.6.4"` was `false`. `$notifyUpdate` and its
+  entry in the save-compression dictionary were left alone, since that list is
+  index-ordered and changing it would break existing saves.
+
+## Build
+- Recompiled `Degrees of Lewdity 0.6.4.html` from source with Tweego.
+
+---
+
+# 0.6.3.1
 
 ## Gameplay / UI changes
 

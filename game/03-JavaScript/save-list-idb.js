@@ -45,7 +45,7 @@
 	}
 
 	async function decorateIndexedDbSaveList(container) {
-		if (container.dataset.gameTimeReady === "true" || !window.idb?.getAllSaves) return;
+		if (container.dataset.gameTimeReady || !window.idb?.getAllSaves) return;
 		container.dataset.gameTimeReady = "pending";
 		try {
 			const saves = await idb.getAllSaves();
@@ -64,24 +64,51 @@
 		}
 	}
 
-	const observer = new MutationObserver(() => {
+	/*
+		#saves-list-container is rendered by the bundled idb-backend plugin, which lives in
+		the story format rather than in game/, so there is no render hook to call - the list
+		has to be watched for. Scope that watch to the overlay content while the saves
+		overlay is actually open: watching the whole document meant a callback on every DOM
+		mutation the game makes, for the entire session.
+	*/
+	const contentObserver = new MutationObserver(() => {
 		const container = document.getElementById("saves-list-container");
-		if (container) setTimeout(() => decorateIndexedDbSaveList(container));
+		if (container) decorateIndexedDbSaveList(container);
 	});
 
-	function startObserver() {
-		if (document.body) {
-			observer.observe(document.body, { childList: true, subtree: true });
-			const container = document.getElementById("saves-list-container");
-			if (container) decorateIndexedDbSaveList(container);
-			setInterval(() => {
-				const currentContainer = document.getElementById("saves-list-container");
-				if (currentContainer) decorateIndexedDbSaveList(currentContainer);
-			}, 500);
-		} else {
-			setTimeout(startObserver, 0);
-		}
+	function stopWatching() {
+		contentObserver.disconnect();
+		const container = document.getElementById("saves-list-container");
+		/* Clear the cache so re-opening the overlay decorates the freshly rendered list. */
+		if (container) delete container.dataset.gameTimeReady;
 	}
 
-	startObserver();
+	function startWatching() {
+		const content = document.getElementById("customOverlayContent");
+		if (!content) return;
+		contentObserver.observe(content, { childList: true, subtree: true });
+		const container = document.getElementById("saves-list-container");
+		if (container) decorateIndexedDbSaveList(container);
+	}
+
+	function syncToOverlay() {
+		const overlay = document.getElementById("customOverlay");
+		if (overlay?.getAttribute("data-overlay") === "saves") startWatching();
+		else stopWatching();
+	}
+
+	function start() {
+		const overlay = document.getElementById("customOverlay");
+		if (!overlay) {
+			setTimeout(start, 0);
+			return;
+		}
+		/* overlayReplace stamps data-overlay on #customOverlay; one attribute-filtered
+		observer on that single element is idle until the player opens an overlay. */
+		new MutationObserver(syncToOverlay).observe(overlay, { attributes: true, attributeFilter: ["data-overlay"] });
+		$(document).on(":oncloseoverlay", stopWatching);
+		syncToOverlay();
+	}
+
+	start();
 })();

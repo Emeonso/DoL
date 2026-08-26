@@ -41,21 +41,6 @@ function onLoad(save) {
 	pageLoading = true;
 	window.onLoadUpdateCheck = true;
 
-	// Restore the options changed during the previous session. Options are kept
-	// outside gameplay history, so they need to be merged into the loaded frame
-	// separately to survive a browser refresh.
-	try {
-		const cachedOptions = JSON.parse(localStorage.getItem("dolSessionOptions"));
-		const history = save?.state?.history;
-		if (cachedOptions && Array.isArray(history)) {
-			for (const frame of history) {
-				if (frame?.variables) frame.variables.options = { ...frame.variables.options, ...cachedOptions };
-			}
-		}
-	} catch (error) {
-		console.warn("Unable to restore cached options", error);
-	}
-
 	// clear errors from previous save and reset imageError cache so (possibly) save-specific errors might be logged again
 	Errors.Reporter.hide(true);
 	Renderer.ImageErrors = {};
