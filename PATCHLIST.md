@@ -48,6 +48,24 @@ school shop, forest shop, adult shop, beach stall).
 - The bar indicator's existing hover tooltip (exact warmth number, e.g. "Warmth: 10")
   is untouched, by design, for players who want the precise value.
 
+### Fix warmth indicator desync during wardrobe preview + colour the feeling text
+- `game/03-JavaScript/clothing-shop-v2.js` — `updatewarmthscale()`. Root cause: the
+  wardrobe preview system briefly swaps `$worn` to the draft outfit for one
+  synchronous render, then restores it (`wardrobePreviewProjectCurrent`/
+  `wardrobePreviewRestoreProjection` in `wardrobes.twee`). This macro read
+  `$worn`-derived warmth values *inside* its deferred `$(() => {...})` callback,
+  which only runs on a later tick — by then `$worn` had already been restored to
+  the real (pre-preview) value, so the bar's indicator silently kept showing the
+  old outfit's position while the prose (evaluated synchronously) correctly showed
+  the new one. Fixed by computing warmth/resting-point values synchronously at
+  macro-call time and only deferring the actual DOM writes (still needed, since the
+  freshly-rendered `#warmthIndicator` element doesn't exist in the DOM yet at call
+  time).
+- `game/03-JavaScript/weather/01-setup/weather-descriptions.js` —
+  `warmthGapText()` now colours each band using the game's existing hot/cold text
+  convention (green = comfortable, teal/blue = cold side, orange/red = hot side),
+  matching `setup.WeatherDescriptions.shop()`/`extremeTemperature()`.
+
 ## Build / version bookkeeping
 - Version bumped to `0.6.3.1` (`game/01-config/sugarcubeConfig.js`, `README.md`,
   `compile.bat`); compiled output renamed to `Degrees of Lewdity 0.6.3.1.html`.
