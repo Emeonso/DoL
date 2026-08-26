@@ -2,9 +2,7 @@
 <<widget "actionsman">>
 	<<if $combatHaggle.pauseNow isnot true>>
 	<<set _mainPassageCombatVisual to $options.images and $options.combatImages and $position isnot "stalk">>
-	<<if _mainPassageCombatVisual>>
-		<div class="main-passage-visual" data-main-passage-visual>
-	<</if>>
+	<div @class="_mainPassageCombatVisual ? 'main-passage-visual' : ''" @data-main-passage-visual="_mainPassageCombatVisual ? '' : null">
 	<<exposure>>
 	<<combatDynamicsFinishTurn>><<combatDynamicsBeginTurn>>
 	<<set $face to 0>>
@@ -30,9 +28,7 @@
 	<</if>>
 
 	<<animateCombat>>
-	<<if _mainPassageCombatVisual>>
-		</div>
-	<</if>>
+	</div>
 
 	<div @class="($debugLines ? 'debugLines-actionsman' : '')">
 
