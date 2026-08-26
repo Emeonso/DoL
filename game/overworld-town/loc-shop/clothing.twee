@@ -97,7 +97,7 @@
 			*<<clothingcategoryicon "strapon">> <!-- disable for now-->
 			*<<link "View Genital Wear">><<replace "#clothingShop-div">><<GenitalShop>><</replace>><</link>>*/
 			<br><br>
-			<<run linkifyDivs('.button-back-to-shop')>>
+			<<run setTimeout(() => linkifyDivs('.button-back-to-shop'), 0)>>
 
 			<<if (Time.dayState isnot "night" or Time.hour isnot $closinghour) and $tryOn.value is 0>>
 				<<icon "hanger.png">><<link [[Changing room|Changing Room]]>><<ShowUnderEquip "normal">><<set $wardrobeExit to "Clothing Shop">><</link>>
