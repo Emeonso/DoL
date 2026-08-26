@@ -2745,14 +2745,21 @@
 	<<set $_minWarmth to getTargetWarmth(36.4)>>
 	<<set $_maxWarmth to getTargetWarmth(37.6)>>
 	To be comfortable you'll need
-	<<if $_minWarmth isnot null and $_maxWarmth isnot null>>
-		a clothing warmth between <span class="orange"><<print getTargetWarmth(36.5)>></span> and <span class="orange"><<print getTargetWarmth(37.5)>></span>.
-	<<elseif $_minWarmth isnot null>>
-		at least a clothing warmth of <span class="orange"><<print getTargetWarmth(36.5)>></span>.
-	<<elseif $_maxWarmth isnot null>>
-		at most a clothing warmth of <span class="orange"><<print getTargetWarmth(37.5)>></span>.
-	<<else>>
+	<<if $_minWarmth is null and $_maxWarmth is null>>
+		<!-- Too cold to reach the comfortable range even at max warmth -->
 		to stay indoors.
+	<<elseif $_maxWarmth is 0>>
+		<!-- Too hot to stay comfortable even with no clothing at all -->
+		to stay indoors.
+	<<elseif $_minWarmth is 0 and $_maxWarmth is null>>
+		<!-- Comfortable regardless of what you wear -->
+		nothing in particular; you'll be comfortable no matter what you wear.
+	<<elseif $_minWarmth is 0>>
+		at most a clothing warmth of <span class="orange"><<print getTargetWarmth(37.5)>></span>.
+	<<elseif $_maxWarmth is null>>
+		at least a clothing warmth of <span class="orange"><<print getTargetWarmth(36.5)>></span>.
+	<<else>>
+		a clothing warmth between <span class="orange"><<print getTargetWarmth(36.5)>></span> and <span class="orange"><<print getTargetWarmth(37.5)>></span>.
 	<</if>>
 	<hr />
 <</widget>>
