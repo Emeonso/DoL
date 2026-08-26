@@ -90,6 +90,15 @@ school shop, forest shop, adult shop, beach stall).
   deferred via jQuery's `$(() => {...})` ready-shorthand (same effective behaviour
   as `setTimeout(..., 0)` once the document has loaded), so it was left as-is.
 
+### False alarm: "clothing shop buttons still don't work" report
+Investigated a follow-up report that the clothing shop was still totally
+unresponsive after the `linkifyDivs` fix above, even the Back button. A full
+multi-step headless repro (enter shop → View All → open item → click a colour
+swatch → Try On → Back) found no errors, no stuck overlay, and every
+interaction working correctly, repeatedly. User confirmed it was a stale
+uploaded/cached build on their end, not a regression — no code change needed.
+See `TODO.md` for queued-up future work.
+
 ## Build / version bookkeeping
 - Version bumped to `0.6.3.1` (`game/01-config/sugarcubeConfig.js`, `README.md`,
   `compile.bat`); compiled output renamed to `Degrees of Lewdity 0.6.3.1.html`.
