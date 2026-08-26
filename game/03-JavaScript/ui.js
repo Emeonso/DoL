@@ -238,6 +238,7 @@ if (!window.__namedNpcSocialPortraitHandlers) {
 		for (const portraitNpc of portraitNpcs.slice().reverse()) {
 			const portrait = document.createElement("aside");
 			portrait.className = portraitNpc === "Robin" ? "named-npc-portrait robin-portrait" : "named-npc-portrait";
+			portrait.setAttribute("data-main-passage-visual", "");
 			portrait.setAttribute("data-portrait-hook", portraitNpc);
 			portrait.setAttribute("aria-label", portraitNpc + " portrait");
 			content.prepend(portrait);

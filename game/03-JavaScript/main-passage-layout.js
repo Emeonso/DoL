@@ -76,5 +76,6 @@ const MainPassageLayout = (() => {
 })();
 
 $(document).on(":passagerender", event => {
-	MainPassageLayout.refresh(event.content);
+	/* Other passagerender listeners may add marked visuals, such as portraits. */
+	queueMicrotask(() => MainPassageLayout.refresh(event.content));
 });
