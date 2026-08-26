@@ -9,6 +9,9 @@ built into the playable HTML file.
 > **Content note:** Degrees of Lewdity is an adult (18+) game with explicit
 > sexual content. This repository contains its full source, including
 > content of that nature.
+>
+> **TODO
+> debug desire -> intent pipeline
 
 ## Repository layout
 
