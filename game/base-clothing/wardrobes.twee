@@ -2745,11 +2745,11 @@
 	<<set $_minWarmth to getTargetWarmth(36.4)>>
 	<<set $_maxWarmth to getTargetWarmth(37.6)>>
 	To be comfortable you'll need
-	<<if $_minWarmth and $_maxWarmth>>
+	<<if $_minWarmth isnot null and $_maxWarmth isnot null>>
 		a clothing warmth between <span class="orange"><<print getTargetWarmth(36.5)>></span> and <span class="orange"><<print getTargetWarmth(37.5)>></span>.
-	<<elseif $_minWarmth>>
+	<<elseif $_minWarmth isnot null>>
 		at least a clothing warmth of <span class="orange"><<print getTargetWarmth(36.5)>></span>.
-	<<elseif $_maxWarmth>>
+	<<elseif $_maxWarmth isnot null>>
 		at most a clothing warmth of <span class="orange"><<print getTargetWarmth(37.5)>></span>.
 	<<else>>
 		to stay indoors.
