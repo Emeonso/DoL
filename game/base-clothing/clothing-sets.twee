@@ -1,30 +1,83 @@
 :: Widgets Outfits [widget]
 <<widget "listoutfits">>
-	<label class="no-numberify"><<link "Create new set from current clothing">><<toggleclass "#newClothingSetFromCurrent" "hidden">><</link>></label> |
-	<label class="no-numberify"><<link "Edit all sets">><<overlayReplace "outfitEditor">><</link>></label>
-	<br>
+	<div class="wardrobe-outfits-panel-controls no-numberify">
+		<<link "Create new set from current clothing">><<toggleclass "#newClothingSetFromCurrent" "hidden">><</link>>
+		<<link "Edit all sets">><<overlayReplace "outfitEditor">><</link>>
+	</div>
 	<div id="newClothingSetFromCurrent" class="wardrobeSubSection hidden">
 		<<wardrobeNewOutfit>>
 		<br>
 	</div>
-	<br>
 
-	<label><<radiobutton "$delete_outfit" "none" checked>> Wear</label> |
-	<label><<radiobutton "$delete_outfit" 1>> Delete</label> |
-	<label><<radiobutton "$delete_outfit" 2>> Overwrite with current clothing</label>
-	<br><br>
+	<div class="wardrobe-outfits-mode-row no-numberify">
+		<label><<radiobutton "$delete_outfit" "none" checked>> Wear</label>
+		<label><<radiobutton "$delete_outfit" 1>> Delete</label>
+		<label><<radiobutton "$delete_outfit" 2>> Overwrite with current clothing</label>
+	</div>
 
 	<!-- List the currently saved outfits -->
 	<div class="outfitContainer no-numberify">
+		<<set _outfitCardQueue to []>>
 		<<for _index, $_outfit range $outfit>>
 			<<if $_outfit.location and $_outfit.location isnot $wardrobe_location>>
 				<<continue>>
 			<</if>>
 			<<set _outfitname to $_outfit.name + ($_outfit.colors is false ? "" : " [C]") + ($_outfit.location is undefined ? "" : " [L]")>>
-			<<capture _index>>
-				<<button _outfitname>><<wardrobePreviewOutfit _index>><</button>>
+			<<capture _index _outfitname>>
+				<<wardrobeOutfitCard _index _outfitname>>
 			<</capture>>
+			<<if $options.images is 1>>
+				<<set _outfitQueueIndex to _index>>
+				<<wardrobeOutfitResolveModelOptions _outfitQueueIndex>>
+				<<run _outfitCardQueue.push({ index: _outfitQueueIndex, options: clone(_modeloptions) })>>
+			<</if>>
 		<</for>>
+	</div>
+	<<run (function (queue) { setTimeout(() => window.wardrobeRenderOutfitCardQueue(queue), 0); })(_outfitCardQueue)>>
+<</widget>>
+
+<<widget "wardrobeOutfitResolveModelOptions">>
+	/* Resolves the worn/hair render options for a saved outfit without
+	   rendering anything - pure data, safe to run synchronously in a loop.
+	   The actual canvas render is queued separately (see listoutfits /
+	   wardrobeRenderOutfitCardQueue) and run one at a time, since firing
+	   several full-body renders in the same tick corrupts each other's
+	   output (observed as some cards showing only a hair/face bust with the
+	   body/clothing layers missing). */
+	<<set _outfitCardIndex to _args[0]>>
+	<<wardrobePreviewProjectCurrent>>
+	<<set $_storeLocation to $wardrobePreview.location>>
+	<<set $wardrobeOption to "wear">>
+	<<set $wear_outfit to _outfitCardIndex>>
+	<<wearoutfit>>
+	<<selectmodel "main" ("wardrobe-outfit-card-" + _outfitCardIndex)>>
+	<<modelprepare-player-body>>
+	<<modelprepare-player-clothes>>
+	<<set _modeloptions.show_hair to true>>
+	<<set _modeloptions.hair_sides_type to $hairtype>>
+	<<set _modeloptions.hair_sides_position to $hairposition>>
+	<<set _modeloptions.hair_sides_length to $hairlengthstage>>
+	<<set _modeloptions.hair_fringe_type to $fringetype>>
+	<<set _modeloptions.hair_fringe_length to $fringelengthstage>>
+	<<wardrobePreviewRestoreProjection>>
+<</widget>>
+
+<<widget "wardrobeOutfitCard">>
+	<<set _outfitCardIndex to _args[0]>>
+	<<set _outfitCardName to _args[1]>>
+	<div class="wardrobe-outfit-card" @title="_outfitCardName" @aria-label="_outfitCardName">
+		<<if $options.images is 1>>
+			<div @id="'wardrobe-outfit-card-viewport-' + _outfitCardIndex" class="wardrobe-outfit-card-viewport"></div>
+		<<else>>
+			<span class="wardrobe-outfit-card-text-fallback">No preview</span>
+		<</if>>
+		<hr class="wardrobe-outfit-card-divider">
+		<div class="wardrobe-outfit-card-title"><<print _outfitCardName>></div>
+		<div class="wardrobe-outfit-card-action no-numberify">
+			<<capture _outfitCardIndex>>
+				<<link " ">><<wardrobePreviewOutfit _outfitCardIndex>><</link>>
+			<</capture>>
+		</div>
 	</div>
 <</widget>>
 

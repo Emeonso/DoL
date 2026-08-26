@@ -621,6 +621,44 @@ function wardrobeSyncStylePanelHeight() {
 window.wardrobeSyncStylePanelHeight = wardrobeSyncStylePanelHeight;
 window.addEventListener("resize", wardrobeSyncStylePanelHeight);
 
+/**
+ * Renders a queue of outfit-card canvases one at a time.
+ *
+ * Firing several full-body CanvasModel renders in the same tick corrupts
+ * each other's output (observed as some cards showing only a hair/face bust
+ * with body/clothing layers missing) - the renderer's layer-loading pipeline
+ * isn't safe to run concurrently across independent model instances. Each
+ * entry's worn/hair options are resolved synchronously beforehand (safe,
+ * no rendering involved), then rendered strictly one after another by
+ * waiting for the previous render's renderingDone callback before starting
+ * the next.
+ *
+ * @param {Array<{index: number, options: object}>} queue
+ */
+function wardrobeRenderOutfitCardQueue(queue) {
+	const remaining = queue.slice();
+
+	function renderNext() {
+		if (remaining.length === 0) return;
+		const { index, options } = remaining.shift();
+		const modelClass = Renderer.locateModel("main", "wardrobe-outfit-card-" + index);
+		const canvas = modelClass.createCanvas();
+		const listener = Object.assign({}, Renderer.defaultListener, {
+			renderingDone(time) {
+				Renderer.defaultListener.renderingDone(time);
+				renderNext();
+			},
+		});
+		modelClass.render(canvas, options, listener);
+		canvas.canvas.className = "wardrobe-outfit-card-canvas";
+		const target = document.getElementById("wardrobe-outfit-card-viewport-" + index);
+		if (target) target.appendChild(canvas.canvas);
+	}
+
+	renderNext();
+}
+window.wardrobeRenderOutfitCardQueue = wardrobeRenderOutfitCardQueue;
+
 function wardrobePreviewComparable(value) {
 	const stable = input => {
 		if (Array.isArray(input)) return input.map(stable);

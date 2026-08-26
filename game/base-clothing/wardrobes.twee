@@ -387,6 +387,7 @@
     <div class="wardrobe-paperdoll-controls no-numberify">
       <<link "Hair">><<replace "#wardrobeRightPanel">><<wardrobeStylePanel "hair">><</replace>><<numberify "#wardrobeRightPanel">><<run setTimeout(() => window.wardrobeSyncStylePanelHeight(), 0)>><</link>>
       <<link "Makeup">><<replace "#wardrobeRightPanel">><<wardrobeStylePanel "makeup">><</replace>><<numberify "#wardrobeRightPanel">><<run setTimeout(() => window.wardrobeSyncStylePanelHeight(), 0)>><</link>>
+      <<link "Outfits">><<replace "#wardrobeRightPanel">><<wardrobeStylePanel "outfits">><</replace>><<numberify "#wardrobeRightPanel">><<run setTimeout(() => window.wardrobeSyncStylePanelHeight(), 0)>><</link>>
     </div>
     <div id="wardrobePaperDoll"><<wardrobePaperDoll>></div>
     <div class="wardrobe-apply-row no-numberify" id="wardrobeApply"><<wardrobeApplyChanges>></div>
@@ -468,10 +469,6 @@
 			<br><br>
 		<</if>>
 	<</if>>
-
-	__Clothing sets__
-	<br>
-	<div id="listoutfits"><<listoutfits>></div>
 
 	<hr>
 	__Clothing__
@@ -1232,11 +1229,17 @@
   </div>
 <</widget>>
 
+<<widget "wardrobePreviewRenderOutfitsPanel">>
+  <div id="listoutfits"><<listoutfits>></div>
+<</widget>>
+
 <<widget "wardrobePreviewRenderStylePanel">>
   <<if _args[0] is "hair">>
     <<wardrobePreviewRenderHairPanel>>
   <<elseif _args[0] is "clothing">>
     <<wardrobePreviewRenderClothingPanel>>
+  <<elseif _args[0] is "outfits">>
+    <<wardrobePreviewRenderOutfitsPanel>>
   <<else>>
     <<wardrobePreviewRenderMakeupPanel>>
   <</if>>
@@ -1265,12 +1268,14 @@
 	<</replace>>
 	<</if>>
   <<if $('#wardrobeRightPanel')[0]>>
-    <<if _args[0] is "hair" or _args[0] is "makeup" or _args[0] is "clothing">>
+    <<if _args[0] is "hair" or _args[0] is "makeup" or _args[0] is "clothing" or _args[0] is "outfits">>
       <<if $('#wardrobeRightPanel .wardrobe-style-mirror')[0]>>
         <<if _args[0] is "hair">>
           <<run $('#wardrobeRightPanel .wardrobe-style-mirror').html(new Wikifier(null, "<<wardrobePreviewRenderStylePanel hair>>").output)>>
         <<elseif _args[0] is "clothing">>
           <<run $('#wardrobeRightPanel .wardrobe-style-mirror').html(new Wikifier(null, "<<wardrobePreviewRenderStylePanel clothing>>").output)>>
+        <<elseif _args[0] is "outfits">>
+          <<run $('#wardrobeRightPanel .wardrobe-style-mirror').html(new Wikifier(null, "<<wardrobePreviewRenderStylePanel outfits>>").output)>>
         <<else>>
           <<run $('#wardrobeRightPanel .wardrobe-style-mirror').html(new Wikifier(null, "<<wardrobePreviewRenderStylePanel makeup>>").output)>>
         <</if>>
@@ -2283,7 +2288,7 @@
 
 <<widget "updatewardrobe">>
 	<<if $wardrobePreview isnot undefined and $wardrobePreview.active is true>>
-		<<wardrobePreviewRefresh>>
+		<<wardrobePreviewRefresh _args[0]>>
 	<<else>>
 	<<if window.scrollY > 130>>
 		<<run $('#action-popup, #wardrobewear').html(new Wikifier(null, "<<wardrobewear>>").output)>>

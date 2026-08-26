@@ -99,6 +99,52 @@ interaction working correctly, repeatedly. User confirmed it was a stale
 uploaded/cached build on their end, not a regression — no code change needed.
 See `TODO.md` for queued-up future work.
 
+### New "Outfits" panel: relocate Clothing Sets, restyle its controls, visual outfit cards
+Both `TODO.md` backlog items ("wardrobe cleanup bottom buttons" — turned out to mean
+these controls, not the bottom action-button row — and "add custom outfit buttons")
+landed together, since the second turned into "give the existing outfit-set system its
+own panel."
+- `game/base-clothing/wardrobes.twee` — added an "Outfits" button next to Hair/Makeup
+  (`.wardrobe-paperdoll-controls`), opening a right-panel sub-view via the same generic
+  `wardrobeStylePanel`/`wardrobePreviewRenderStylePanel`/`wardrobePreviewRefresh`
+  mechanism already used for Hair/Makeup/the clothing-slot panel. Removed the old
+  inline "Clothing sets" heading/section from the main wardrobe body (moved into the
+  new `wardrobePreviewRenderOutfitsPanel` widget). Fixed a pre-existing gap in
+  `updatewardrobe` that called `<<wardrobePreviewRefresh>>` without forwarding
+  `_args[0]`, which would have kicked the player back to the summary panel after
+  saving a new outfit while the Outfits panel was open.
+- `game/base-clothing/clothing-sets.twee` — `listoutfits` widget: restyled the
+  "Create new set from current clothing" / "Edit all sets" links and the
+  "Wear / Delete / Overwrite" radio row into bordered flex rows
+  (`.wardrobe-outfits-panel-controls`, `.wardrobe-outfits-mode-row`), matching the
+  Hair/Makeup button convention instead of the old plain pipe-separated links. Each
+  saved outfit is now a visual card (image, divider, name) instead of a plain text
+  button, showing an actual composited render of what the player would look like
+  wearing it — reuses the existing `wearoutfit` equip-resolution widget and the
+  wardrobe preview sandbox (`wardrobePreviewProjectCurrent`/
+  `wardrobePreviewRestoreProjection`) to resolve each outfit's worn/hair state
+  without touching real player state, same as the live paperdoll preview already does.
+  Clicking a card still calls `wardrobePreviewOutfit` to preview/wear it, unchanged.
+- `game/03-JavaScript/base-clothing.js` — added `wardrobeRenderOutfitCardQueue()`.
+  Firing several independent full-body `CanvasModel` renders in the same tick corrupts
+  each other's output (some cards would render only a hair/face bust, missing
+  body/clothing layers) — the renderer's layer-loading pipeline isn't safe to run
+  concurrently across model instances. Each card's render options are resolved
+  synchronously up front (cheap, no rendering), then rendered strictly one at a time,
+  chained via the renderer's own `renderingDone` completion callback rather than a
+  guessed delay (an earlier `setTimeout`-staggered attempt remained randomly unreliable
+  even at very long delays). The queue itself is kicked off via a deferred
+  `setTimeout(..., 0)`, since the panel's HTML can still be an unattached fragment
+  (built by `new Wikifier(null, ...)`) at the moment the widget finishes — the queue's
+  first entry would otherwise run before the elements exist in `document` and silently
+  fail to find its target.
+- `modules/css/wardrobe.css` — new `.wardrobe-outfit-card`/`-viewport`/`-divider`/
+  `-title`/`-action` rules for the card grid, and `.wardrobe-outfits-panel-controls`/
+  `.wardrobe-outfits-mode-row` for the restyled controls row.
+- `modules/css/base.css` — removed the old `.outfitContainer button` rules, superseded
+  by the new card styling in `wardrobe.css`.
+- `TODO.md` — both backlog items completed and removed.
+
 ## Build / version bookkeeping
 - Version bumped to `0.6.3.1` (`game/01-config/sugarcubeConfig.js`, `README.md`,
   `compile.bat`); compiled output renamed to `Degrees of Lewdity 0.6.3.1.html`.

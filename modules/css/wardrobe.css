@@ -1826,6 +1826,106 @@
 	overflow-wrap: anywhere;
 }
 
+.wardrobe-outfits-panel-controls {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.35em;
+	margin-bottom: 0.6em;
+}
+
+.wardrobe-outfits-panel-controls a {
+	display: inline-block;
+	padding: 0.25em 0.65em;
+	border: 1px solid var(--600);
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+.wardrobe-outfits-panel-controls a:hover {
+	border-color: var(--silver);
+	background: var(--750);
+}
+
+.wardrobe-outfits-mode-row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.75em;
+	margin-bottom: 0.75em;
+}
+
+.wardrobe-outfit-card {
+	display: block;
+	position: relative;
+	box-sizing: border-box;
+	min-width: 0;
+	border: 1px solid var(--600);
+	border-radius: 3px;
+	background: var(--900);
+	overflow: hidden;
+	transition: background-color 0.1s, border-color 0.1s, box-shadow 0.1s;
+}
+
+.wardrobe-outfit-card:hover,
+.wardrobe-outfit-card:focus-within {
+	border-color: var(--silver);
+	background: var(--850);
+	box-shadow: 0 0 0 1px var(--silver);
+}
+
+.wardrobe-outfit-card-action {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+.wardrobe-outfit-card-action > a {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.wardrobe-outfit-card-divider {
+	margin: 0;
+	border: none;
+	border-top: 1px solid var(--600);
+}
+
+.wardrobe-outfit-card-title {
+	padding: 0.3em 0.4em;
+	font-size: 0.85em;
+	text-align: center;
+	overflow-wrap: anywhere;
+}
+
+.wardrobe-outfit-card-viewport {
+	position: relative;
+	width: 100%;
+	height: 150px;
+	overflow: hidden;
+	background: var(--950);
+}
+
+.wardrobe-outfit-card-viewport canvas {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 100%;
+	height: auto;
+	max-width: none;
+	image-rendering: pixelated;
+	transform: translateX(-50%);
+}
+
+.wardrobe-outfit-card-text-fallback {
+	display: block;
+	max-width: 100%;
+	padding: 0.45em;
+	overflow-wrap: anywhere;
+}
+
 .wardrobe-hair-favorite {
 	position: absolute;
 	top: 0.15em;
