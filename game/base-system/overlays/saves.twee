@@ -65,6 +65,7 @@
 		</span></mouse>
 	</p>
 	<<set _saveDetails = getSaveDetails()>>
+	<<set _saveData = returnSaveDetails()>>
 	<!--Extra checks in case the above fails for some reason-->
 	<<if _saveDetails eq null>>
 		<<set _saveDetails to returnSaveDetails()>>
@@ -85,6 +86,7 @@
 				<div class="saveButton">Save/Load</div>
 				<div class="saveName">ID/Name</div>
 				<div class="saveDetails">Details</div>
+				<div class="saveGameTime"><span class="saveGameTimeHeader">In-game Date/Time</span></div>
 			</div>
 			<div class="deleteButton"></div>
 		</div>
@@ -120,6 +122,14 @@
 								<div class="saveDetails">
 									<span><<print Util.escapeMarkup(_saveDetails.autosave.title.replace(/</g, "< "))>></span>
 									<span @class="'datestamp' + _highlight"><<print new Date(_saveDetails.autosave.date).toLocaleString(returnTimeFormat())>></span>
+								</div>
+								<<set _gameTime to getSavedGameTime(_saveData.autosave)>>
+								<div class="saveGameTime">
+									<<if _gameTime>>
+										<span><<print getFormattedDate(_gameTime.date)>></span>
+										<span><<print ampm(_gameTime.date.hour, _gameTime.date.minute)>></span>
+										<span class="saveDays">Day <<print _gameTime.days>></span>
+									<</if>>
 								</div>
 							</div>
 							<div class="deleteButton">
@@ -181,6 +191,14 @@
 									<span><<print Util.escapeMarkup(_saveDetails.slots[_slot].title.replace(/</g, "< "))>></span>
 									<span @class="'datestamp' + _highlight"><<print new Date(_saveDetails.slots[_slot].date).toLocaleString(returnTimeFormat())>></span>
 								</div>
+								<<set _gameTime to getSavedGameTime(_saveData.slots[_slot])>>
+								<div class="saveGameTime">
+									<<if _gameTime>>
+										<span><<print getFormattedDate(_gameTime.date)>></span>
+										<span><<print ampm(_gameTime.date.hour, _gameTime.date.minute)>></span>
+										<span class="saveDays">Day <<print _gameTime.days>></span>
+									<</if>>
+								</div>
 							</div>
 							<<if _i is _ironmanSlot>>
 								<div id="exportButton" class="exportButton"><input type="button" class="saveMenuButton right" value="Export" @onclick="'IronMan.export('+ _slot +')'"/></div>
@@ -199,6 +217,7 @@
 								</div>
 								<div class="saveName"></div>
 								<div class="saveDetails"></div>
+								<div class="saveGameTime"></div>
 							</div>
 							<div class="deleteButton">
 								<input class="right" type="button" value="Delete" disabled/>
@@ -211,6 +230,7 @@
 							<div class="saveButton"></div>
 							<div class="saveName"></div>
 							<div class="saveDetails"></div>
+							<div class="saveGameTime"></div>
 						</div>
 						<div class="saveButton"><input type="button" class="saveMenuButton right" value="Delete All" onclick="deleteSave('all')"/></div>
 					<</if>>

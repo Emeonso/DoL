@@ -26,6 +26,7 @@
 		sidebarStats: "all",
 		sidebarTime: "top",
 		combatControls: "radio",
+		mainPassageVisualLayout: "single",
 		targetYourself: false,
 		scrollRemember: false,
 		mapMovement: _globalGeneralDefaults.mapMovement or true,

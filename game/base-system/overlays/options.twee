@@ -12,6 +12,7 @@ IMPORTANT:
 		window.Theme.initControl();
 			onInputChanged(() => {
 				if(!T.optionsRefresh) T.optionsRefresh = true;
+				setTimeout(() => localStorage.setItem("dolSessionOptions", JSON.stringify(V.options)), 0);
 				if(T.globalThemeDefaults) Wikifier.wikifyEval("<<setFont true>>");
 			}, "options");
 	<</script>>
@@ -463,6 +464,14 @@ IMPORTANT:
 				<label data-target="options.images" data-disabledif="V.options.images===0">
 					<<checkbox "$options.combatImages" 0 1 autocheck>> Enable combat images
 				</label>
+			</div>
+			<div class="settingsToggleItemWide">
+				Main passage visual layout:
+				<<listbox "$options.mainPassageVisualLayout" autoselect>>
+					<<option "Single column" "single">>
+					<<option "Split visual and interaction columns" "split">>
+				<</listbox>>
+				<div class="description">Place marked animated scenes beside their text and controls in the main window.</div>
 			</div>
 
 			<div class="settingsToggleItem">

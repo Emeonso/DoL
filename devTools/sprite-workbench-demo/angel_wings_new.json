@@ -1,0 +1,43 @@
+{
+  "canvas": {"width": 256, "height": 128},
+  "layers": [
+    {"name": "angel-wings-new", "new": true, "size": [256, 128]},
+    {"name": "body", "path": "../../img/body/base-classic.png"},
+    {"name": "head", "path": "../../img/body/base-head.png"},
+    {"name": "hair-sides", "path": "../../img/hair/sides/default/short.png"},
+    {"name": "hair-fringe", "path": "../../img/hair/fringe/default/short.png"}
+  ],
+  "edits": [
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[58,72],[50,69],[40,64],[30,57],[21,48],[15,37],[17,27],[26,30],[37,36],[47,44],[56,55],[61,65]], "colour": "#9aacc1ff"},
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[56,66],[47,60],[36,52],[26,43],[19,33],[27,35],[38,42],[49,51],[58,61]], "colour": "#cbd3e0ff"},
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[19,29],[27,30],[42,38],[52,48],[45,45],[33,37],[24,34]], "colour": "#feffffff"},
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[17,38],[24,40],[38,48],[52,59],[44,56],[30,48],[21,43]], "colour": "#feffffff"},
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[22,48],[30,51],[43,60],[55,68],[45,65],[32,58],[25,53]], "colour": "#feffffff"},
+    {"op": "line", "layer": "angel-wings-new", "points": [[17,27],[15,37],[21,48],[30,57],[40,64],[50,69],[58,72]], "colour": "#5e7387ff"},
+    {"op": "line", "layer": "angel-wings-new", "points": [[26,30],[37,36],[47,44],[56,55],[61,65]], "colour": "#5e7387ff"},
+    {"op": "line", "layer": "angel-wings-new", "points": [[19,33],[27,35],[38,42],[49,51],[58,61]], "colour": "#9aacc1ff"},
+    {"op": "mirror", "layer": "angel-wings-new", "box": [14,20,62,75], "target_x": 66},
+
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[186,72],[178,69],[168,64],[158,57],[149,48],[143,37],[145,27],[154,30],[165,36],[175,44],[184,55],[189,65]], "colour": "#9aacc1ff"},
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[184,66],[175,60],[164,52],[154,43],[147,33],[155,35],[166,42],[177,51],[186,61]], "colour": "#cbd3e0ff"},
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[147,29],[155,30],[170,38],[180,48],[173,45],[161,37],[152,34]], "colour": "#feffffff"},
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[145,38],[152,40],[166,48],[180,59],[172,56],[158,48],[149,43]], "colour": "#feffffff"},
+    {"op": "polygon", "layer": "angel-wings-new", "points": [[150,48],[158,51],[171,60],[183,68],[173,65],[160,58],[153,53]], "colour": "#feffffff"},
+    {"op": "line", "layer": "angel-wings-new", "points": [[145,27],[143,37],[149,48],[158,57],[168,64],[178,69],[186,72]], "colour": "#5e7387ff"},
+    {"op": "line", "layer": "angel-wings-new", "points": [[154,30],[165,36],[175,44],[184,55],[189,65]], "colour": "#5e7387ff"},
+    {"op": "line", "layer": "angel-wings-new", "points": [[147,33],[155,35],[166,42],[177,51],[186,61]], "colour": "#9aacc1ff"},
+    {"op": "mirror", "layer": "angel-wings-new", "box": [142,20,190,75], "target_x": 194}
+  ],
+  "output": "output/angel-wings-preview-composite.png",
+  "output_mode": "RGBA",
+  "preview": "output/angel-wings-preview-8x.png",
+  "preview_scale": 8,
+  "grid": false,
+  "inspection_dir": "output/angel-wings-inspection",
+  "inspection_scale": 8,
+  "contact_scale": 2,
+  "grid_layer": "angel-wings-new",
+  "exports": [
+    {"layer": "angel-wings-new", "path": "output/angel-wings-idle-new.png", "mode": "preserve_palette", "palette_from": "../../img/transformations/angel/wings-idle/default.png"}
+  ]
+}

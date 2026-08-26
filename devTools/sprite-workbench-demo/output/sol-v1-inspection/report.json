@@ -1,0 +1,73 @@
+{
+  "recipe": "devTools\\sprite-workbench-demo\\angel_wings_sol_v1.json",
+  "canvas": {
+    "width": 256,
+    "height": 128
+  },
+  "layers": [
+    {
+      "name": "sol-wings-v1",
+      "path": "<new-layer>",
+      "size": [
+        256,
+        128
+      ],
+      "x": 0,
+      "y": 0,
+      "opacity": 1.0
+    },
+    {
+      "name": "procedural-body-guide",
+      "path": "<new-layer>",
+      "size": [
+        256,
+        128
+      ],
+      "x": 0,
+      "y": 0,
+      "opacity": 1.0
+    }
+  ],
+  "edits": 24,
+  "edit_operation_pixel_counts": [
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    84,
+    3380,
+    16384,
+    342,
+    6,
+    3,
+    3,
+    4,
+    4,
+    16384
+  ],
+  "composite_nontransparent_bounds": [
+    13,
+    16,
+    243,
+    107
+  ],
+  "grid_layer": "sol-wings-v1",
+  "outputs": [
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\sol-v1-inspection\\composite.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\sol-v1-wings.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\sol-v1-inspection\\composite-8x.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\sol-v1-inspection\\layers-contact-sheet.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\sol-v1-inspection\\sol-wings-v1-pixel-grid.txt",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\sol-v1-inspection\\report.json"
+  ]
+}

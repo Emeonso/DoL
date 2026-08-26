@@ -1388,6 +1388,46 @@ input.heart:hover {
 	overflow-y: hidden;
 }
 
+#savesListContainer .savesListRow .saveGroup > .saveGameTime,
+#saves-list-container .savesListRow .saveGroup > .saveGameTime {
+	display: flex !important;
+	flex: 0 0 150px;
+	flex-direction: column !important;
+	align-items: flex-start !important;
+	justify-content: flex-start !important;
+	min-width: 150px;
+	white-space: normal;
+	font-size: 13px;
+	line-height: 1.2;
+}
+
+#saves-list-container .savesListRow {
+	max-height: none;
+	align-items: flex-start;
+}
+
+#saves-list-container .savesListRow > .deleteButton {
+	align-self: center;
+}
+
+#savesListContainer .savesListRow .saveGroup > .saveGameTime .saveGameTimeHeader,
+#saves-list-container .savesListRow .saveGroup > .saveGameTime .saveGameTimeHeader {
+	font-size: 16px;
+	font-weight: normal;
+	line-height: normal;
+	text-align: left;
+	display: block;
+	margin: 0;
+	width: max-content;
+	white-space: nowrap;
+}
+
+#savesListContainer .savesListRow .saveGroup > .saveGameTime .saveDays,
+#saves-list-container .savesListRow .saveGroup > .saveGameTime .saveDays {
+	color: var(--gold);
+	font-size: 13px;
+}
+
 #savesListContainer .savesListRow .saveGroup .deleteButton .exportButton .exportDebugButton {
 	display: flex;
 	justify-content: right;

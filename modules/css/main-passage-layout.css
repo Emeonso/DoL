@@ -1,0 +1,60 @@
+/* Main-window visual layout. This deliberately does not target #sidebar. */
+#story.main-passage-layout-wide {
+	margin-left: 18em;
+	margin-right: 0.5em;
+}
+
+#passages.main-passage-layout-wide {
+	max-width: none;
+	width: 100%;
+}
+
+.main-passage-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(0, 7fr);
+	gap: 1.5rem;
+	align-items: start;
+}
+
+.main-passage-visuals,
+.main-passage-interaction {
+	min-width: 0;
+}
+
+.main-passage-visuals {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1rem;
+	width: 100%;
+}
+
+.main-passage-visual {
+	width: 100%;
+}
+
+.main-passage-visuals .combat-grid {
+	width: 100%;
+}
+
+@media screen and (max-width: 54em) {
+	.main-passage-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.main-passage-visuals {
+		order: 0;
+		min-width: 0;
+	}
+
+	.main-passage-interaction {
+		order: 1;
+	}
+}
+
+@media screen and (max-width: 632px) {
+	#story.main-passage-layout-wide {
+		margin-left: 3em;
+		margin-right: 1em;
+	}
+}
