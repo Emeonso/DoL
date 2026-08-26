@@ -517,7 +517,15 @@ function combatDynamicsProfile(index) {
 	const npc = V.NPCList[index] || {};
 	const anatomy = combatDynamicsNpcAnatomy(npc);
 
-	const candidates = combatDynamicsCandidates(npc);
+	/* Desire System Upgrade, Step 3: seed from the body-description index this
+	 * NPC was generated with (npc-generation.twee), when available, so scores
+	 * carry the NPC's body-type disposition instead of a flat baseline. Falls
+	 * back to the unweighted flat-score list for NPCs generated before this
+	 * field existed (older saves) or that never ran through that code path. */
+	const hasBodyIndex = Number.isFinite(Number(npc.desireBodyIndex)) && Number.isFinite(Number(npc.desireBodyCount)) && Number(npc.desireBodyCount) > 0;
+	const candidates = hasBodyIndex
+		? combatDynamicsSeedCandidates(npc, Number(npc.desireBodyIndex), Number(npc.desireBodyCount))
+		: combatDynamicsCandidates(npc);
 	const viable = candidates.filter(candidate => candidate.viable).sort((left, right) => right.score - left.score);
 
 	const lowThreshold = combatDynamicsConfig.thresholds.low;
