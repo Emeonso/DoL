@@ -1,0 +1,41 @@
+{
+  "recipe": "devTools\\sprite-workbench-demo\\sprite_workbench_new_sprite.json",
+  "canvas": {
+    "width": 256,
+    "height": 128
+  },
+  "layers": [
+    {
+      "name": "new-mark",
+      "path": "<new-layer>",
+      "size": [
+        256,
+        128
+      ],
+      "x": 0,
+      "y": 0,
+      "opacity": 1.0
+    }
+  ],
+  "edits": 3,
+  "edit_operation_pixel_counts": [
+    80,
+    144,
+    1
+  ],
+  "composite_nontransparent_bounds": [
+    118,
+    13,
+    138,
+    26
+  ],
+  "grid_layer": "new-mark",
+  "outputs": [
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\new-sprite-inspection\\composite.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\new-mark-layer.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\new-sprite-inspection\\composite-8x.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\new-sprite-inspection\\layers-contact-sheet.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\new-sprite-inspection\\new-mark-pixel-grid.txt",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\new-sprite-inspection\\report.json"
+  ]
+}

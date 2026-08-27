@@ -1273,7 +1273,6 @@ End of '<<print $replayScene.name>>' scene.
 		<</link>>
 		<div class="btn-pagination-arrow">&gt;</div>
 	</div>
-	<<run setTimeout(() => linkifyDivs('#scenesViewerControls'), 0)>>
 <</widget>>
 
 <<widget "updateSceneViewer">>

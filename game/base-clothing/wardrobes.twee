@@ -491,7 +491,6 @@
 		target.addClass('notransition action-flash');
 		setTimeout(() => { target.removeClass('notransition action-flash') }, 100);
 	})>>
-	<<run setTimeout(() => { linkifyDivs("#wardrobePaperDoll"); linkifyDivs("#wardrobeGridList"); }, 0)>>
 <</widget>>
 <<widget "wardrobeRightSummary">><div class="wardrobe-warmth-header"><span>Warmth:</span><span class="wardrobe-outside-temp teal"><<print Weather.toSelectedString(Weather.temperature, 0)>></span></div><<wardrobePreviewRenderSummary>><</widget>>
 <<widget "attractivenessscale">>
@@ -554,7 +553,7 @@
 	<<run setTimeout(() => window.wardrobeSyncStylePanelHeight(), 0)>>
 	<</link>>
 	</div><div class="wardrobe-style-mirror"><<wardrobePreviewRenderStylePanel _args[0]>>
-	</div></div><<run setTimeout(() => linkifyDivs("#wardrobePaperDoll"), 0)>>
+	</div></div>
 <</widget>>
 
 <<widget "wardrobeClothingEnsureState">>
@@ -1290,7 +1289,6 @@
 	<</replace>>
     <</if>>
   <</if>>
-  <<run setTimeout(() => { linkifyDivs("#wardrobePaperDoll"); linkifyDivs("#wardrobeGridList"); }, 0)>>
   <<run Links.throttle = 0; Links.generateLinkNumbers($(".passage"))>>
   <</for>>
 <</widget>>
@@ -1403,7 +1401,6 @@
 	<</for>>
 	</div></section><</for>>
 	</div></div>
-  <<run setTimeout(() => linkifyDivs("#wardrobeGridList"), 0)>>
 <</widget>>
 <<widget "wardrobeClothingRenderItems">>
 	<<set _clothingSlot to _args[0]>>

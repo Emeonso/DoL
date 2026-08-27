@@ -1,0 +1,23 @@
+{
+  "canvas": {"width": 256, "height": 128},
+  "layers": [
+    {"name": "body", "path": "../../img/body/base-classic.png"},
+    {"name": "head", "path": "../../img/body/base-head.png"},
+    {"name": "hair-sides", "path": "../../img/hair/sides/default/short.png"},
+    {"name": "hair-fringe", "path": "../../img/hair/fringe/default/short.png"}
+  ],
+  "exports": [
+    {"layer": "hair-fringe", "path": "output/custom-fringe.png"}
+  ],
+  "edits": [
+    {"op": "replace", "layer": "hair-fringe", "from": "#ff8d8fff", "to": "#b0231cff"},
+    {"op": "pixel", "layer": "hair-fringe", "x": 60, "y": 17, "colour": "#fd6064ff"}
+  ],
+  "output": "output/demo.png",
+  "preview": "output/demo-8x.png",
+  "inspection_dir": "output/demo-inspection",
+  "preview_scale": 8,
+  "grid": true,
+  "grid_layer": "hair-fringe",
+  "output_mode": "RGBA"
+}

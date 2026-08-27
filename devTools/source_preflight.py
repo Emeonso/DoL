@@ -31,6 +31,12 @@ QUOTED_LINK_EXPRESSION_RE = re.compile(
     r'''<<\s*(?:link|linkappend|linkprepend|linkreplace)\s+["']\s*(?:[$_][A-Za-z][\w$]*\s*(?:[.\[]|[+?:])|[A-Za-z][\w$]*\s*[.\[])''',
     re.IGNORECASE,
 )
+HTML_TAG_RE = re.compile(r"<(/?)\s*([A-Za-z][\w:-]*)\b[^>]*?(/?)\s*>", re.DOTALL)
+MACRO_NAME_RE = re.compile(r"<<\s*(/?)\s*([A-Za-z][\w-]*)\b", re.IGNORECASE)
+HTML_COMMENT_RE = re.compile(r"<!--[\s\S]*?-->")
+VOID_HTML_TAGS = frozenset({
+    "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr",
+})
 
 
 def mask_js_comments(source: str) -> str:
@@ -98,6 +104,91 @@ def check_macro_terminators(source: str, path: Path, findings: list[str]) -> Non
         )
 
 
+def check_html_macro_boundaries(source: str, path: Path, findings: list[str]) -> None:
+    """Reject marked visual containers crossing a conditional branch boundary.
+
+    SugarCube parses each conditional branch as its own fragment. An HTML element
+    opened in one fragment cannot be closed after the branch ends, even though
+    the resulting source may look balanced to a normal HTML reader. Ordinary
+    project markup is intentionally excluded because existing widgets use it
+    across alternate branches.
+    """
+    html_stack: list[tuple[str, int, tuple[str, ...], bool]] = []
+    macro_context: list[str] = []
+    masked_source = HTML_COMMENT_RE.sub(lambda match: "".join("\n" if char == "\n" else " " for char in match.group(0)), source)
+
+    macro_tokens = []
+    position = 0
+    while position < len(source):
+        start = source.find("<<", position)
+        if start == -1:
+            break
+        macro = MACRO_NAME_RE.match(source, start)
+        if not macro:
+            position = start + 2
+            continue
+        quote = None
+        escaped = False
+        token_end = len(source)
+        scan = macro.end()
+        while scan < len(source):
+            character = source[scan]
+            if escaped:
+                escaped = False
+            elif quote and character == "\\":
+                escaped = True
+            elif quote:
+                if character == quote:
+                    quote = None
+            elif character in ("'", '"', "`"):
+                quote = character
+            elif source.startswith(">>", scan):
+                token_end = scan + 2
+                break
+            scan += 1
+        macro_tokens.append((start, token_end, macro.group(1), macro.group(2).lower()))
+        position = token_end
+
+    html_tokens = [(match.start(), match) for match in HTML_TAG_RE.finditer(masked_source)]
+    events = [(start, token_end, closing, name, "macro") for start, token_end, closing, name in macro_tokens]
+    events.extend((start, match.end(), None, match, "html") for start, match in html_tokens)
+    events.sort(key=lambda event: event[0])
+    macro_index = 0
+
+    for start, _, closing, value, kind in events:
+        if kind == "macro":
+            name = value
+            if name in {"if", "switch"}:
+                if closing:
+                    if macro_context and macro_context[-1] == name:
+                        macro_context.pop()
+                else:
+                    macro_context.append(name)
+            continue
+
+        while macro_index < len(macro_tokens) and macro_tokens[macro_index][1] <= start:
+            macro_index += 1
+        if macro_index < len(macro_tokens) and macro_tokens[macro_index][0] <= start < macro_tokens[macro_index][1]:
+            continue
+        tag_closing, name, self_closing = value.groups()
+        name = name.lower()
+        if tag_closing:
+            match_index = next((index for index in range(len(html_stack) - 1, -1, -1) if html_stack[index][0] == name), None)
+            if match_index is None:
+                continue
+            opened_name, opened_offset, opened_context, monitored = html_stack.pop(match_index)
+            current_context = tuple(macro_context)
+            if monitored and opened_context != current_context:
+                findings.append(
+                    f"HTML <{opened_name}> opened in a SugarCube conditional branch but closed in a different branch context "
+                    f"at {path}:{line_number(source, opened_offset)}-{line_number(source, start)}; "
+                    "keep the opening and closing tags in the same <<if>>/<<switch>> branch"
+                )
+        elif not self_closing and name not in VOID_HTML_TAGS:
+            monitored = "data-main-passage-visual" in value.group(0).lower()
+            html_stack.append((name, start, tuple(macro_context), monitored))
+
+
 def collect_registered_models() -> set[str]:
     models: set[str] = set()
     for path in sorted((ROOT / "game").rglob("*.js")):
@@ -137,6 +228,7 @@ def main() -> int:
 
         check_widget_runs(source, path, findings)
         check_macro_terminators(source, path, findings)
+        check_html_macro_boundaries(source, path, findings)
         check_select_models(source, path, registered_models, findings)
 
     if findings:

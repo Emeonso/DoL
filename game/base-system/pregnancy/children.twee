@@ -773,7 +773,6 @@ args[3] - "both" to include unrelated children or "only" to exclude the player c
 			<div class="btn-pagination-arrow">&gt;</div>
 		</div>
 	</div>
-	<<run setTimeout(() => linkifyDivs('#childViewer'), 0)>>
 <</widget>>
 
 <<widget "childViewerElement">>

@@ -298,6 +298,27 @@ const DoLSave = ((Story, Save) => {
 		localStorage.setItem(KEY_DETAILS, JSON.stringify(DEFAULT_DETAILS));
 	}
 
+	function getSavedGameTime(saveObj) {
+		if (!isObject(saveObj?.state)) return null;
+		try {
+			const state = clone(saveObj.state);
+			if (!state.history && state.delta) state.history = State.deltaDecode(state.delta);
+			const preparedSave = { ...saveObj, state };
+			decompressIfNeeded(preparedSave);
+			const savedState = state.history?.[state.index];
+			const variables = savedState?.variables;
+			if (!isObject(variables) || typeof variables.timeStamp !== "number") return null;
+			const startDate = typeof variables.startDate === "number" ? variables.startDate : new DateTime(2022, 9, 4, 7).timeStamp;
+			const date = new DateTime(startDate + variables.timeStamp);
+			return {
+				date,
+				days: Math.floor((date.timeStamp - startDate) / TimeConstants.secondsPerDay),
+			};
+		} catch {
+			return null;
+		}
+	}
+
 	function returnSaveData() {
 		return Save.get();
 	}
@@ -453,6 +474,7 @@ const DoLSave = ((Story, Save) => {
 		delete: deleteSave,
 		import: importSave,
 		getSaves: returnSaveData,
+		getSavedGameTime,
 		resetMenu: resetSaveMenu,
 		getVersion: getSaveVersion,
 		loadHandler,
@@ -487,6 +509,7 @@ window.getSaveDetails = DoLSave.SaveDetails.get;
 window.deleteSaveDetails = DoLSave.SaveDetails.delete;
 window.deleteAllSaveDetails = DoLSave.SaveDetails.deleteAll;
 window.returnSaveDetails = DoLSave.getSaves;
+window.getSavedGameTime = DoLSave.getSavedGameTime;
 window.resetSaveMenu = DoLSave.resetMenu;
 window.ironmanAutoSave = DoLSave.IronMan.autoSave;
 window.loadSave = DoLSave.load;
@@ -1366,6 +1389,7 @@ function settingsObjects(type) {
 					sidebarStats: { strings: ["disabled", "limited", "all"], displayName: "Closed sidebar stats:" },
 					sidebarTime: { strings: ["disabled", "top", "bottom"], displayName: "Closed sidebar time:" },
 					combatControls: { strings: ["radio", "columnRadio", "lists", "limitedLists"], displayName: "Combat controls:" },
+					mainPassageVisualLayout: { strings: ["single", "split"], displayName: "Main passage visual layout:" },
 					mapMovement: { bool: true, displayName: "Enable movement by clicking on map:" },
 					mapTop: { bool: true, displayName: "Move the map above the map links:" },
 					mapMarkers: { bool: true, displayName: "Show clickable areas on maps:" },
@@ -1483,6 +1507,61 @@ function settingsObjects(type) {
 	return result;
 }
 window.settingsObjects = settingsObjects;
+
+/*
+	Which $options keys the general "Save Current As Default" button stores into
+	dolDefaultGeneralSettings. Derived from the settingsObjects registry rather than
+	hand-listed, so a newly added option is covered automatically instead of silently
+	being left out.
+*/
+
+/* Debug tooling and per-save tutorial state must not follow the player between playthroughs. */
+const globalDefaultOptionExclusions = ["showDebugRenderer", "showCombatTools", "tipdisable", "debugdisable"];
+
+/* Theme-owned options are stored by the theme button into dolDefaultThemeSettings; keep the two from fighting over them. */
+const themeDefaultOptions = [
+	"theme",
+	"passageMaxWidth",
+	"font",
+	"passageLineHeight",
+	"overlayLineHeight",
+	"sidebarLineHeight",
+	"passageFontSize",
+	"overlayFontSize",
+	"sidebarFontSize",
+];
+
+function globalDefaultGeneralOptionKeys() {
+	return Object.keys(settingsObjects("general").options).filter(
+		key => !globalDefaultOptionExclusions.includes(key) && !themeDefaultOptions.includes(key)
+	);
+}
+window.globalDefaultGeneralOptionKeys = globalDefaultGeneralOptionKeys;
+
+function globalDefaultThemeOptionKeys() {
+	return themeDefaultOptions.slice();
+}
+window.globalDefaultThemeOptionKeys = globalDefaultThemeOptionKeys;
+
+/*
+	Applies stored global defaults over a freshly built $options object. Values are
+	validated against the settingsObjects registry so a stale or corrupt stored value
+	is ignored rather than written in. Uses an explicit undefined check so a legitimate
+	false or 0 is applied.
+*/
+function applyGlobalDefaultOptions(options, storedDefaults) {
+	if (options == null || typeof storedDefaults !== "object" || storedDefaults === null) return options;
+	const validators = settingsObjects("general").options;
+	Object.keys(storedDefaults).forEach(key => {
+		const value = storedDefaults[key];
+		if (value === undefined) return;
+		const validator = validators[key];
+		if (validator !== undefined && !validateValue(validator, value)) return;
+		options[key] = value;
+	});
+	return options;
+}
+window.applyGlobalDefaultOptions = applyGlobalDefaultOptions;
 
 /* Converts specific settings to so they don't look so chaotic to players */
 function settingsConvert(exportType, type, settings) {

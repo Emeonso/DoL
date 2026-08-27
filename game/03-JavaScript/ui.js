@@ -238,6 +238,7 @@ if (!window.__namedNpcSocialPortraitHandlers) {
 		for (const portraitNpc of portraitNpcs.slice().reverse()) {
 			const portrait = document.createElement("aside");
 			portrait.className = portraitNpc === "Robin" ? "named-npc-portrait robin-portrait" : "named-npc-portrait";
+			portrait.setAttribute("data-main-passage-visual", "");
 			portrait.setAttribute("data-portrait-hook", portraitNpc);
 			portrait.setAttribute("aria-label", portraitNpc + " portrait");
 			content.prepend(portrait);
@@ -415,6 +416,17 @@ function onInputChanged(func, bindingKey = "default") {
 }
 window.onInputChanged = onInputChanged;
 
+// Options survive a refresh through SugarCube's session cache (see updateOptions
+// below) and travel between playthroughs through the "Save Current As Default"
+// buttons, which write dolDefaultGeneralSettings / dolDefaultThemeSettings. The
+// old browser-global dolSessionOptions cache did both jobs at once and leaked one
+// save's options into the next; drop any copy left over from that version.
+try {
+	localStorage.removeItem("dolSessionOptions");
+} catch (error) {
+	console.warn("Unable to clear the retired option cache", error);
+}
+
 function closeOverlay() {
 	wikifier("journalNotesTextareaSave");
 	updateOptions();
@@ -467,6 +479,21 @@ function updateOptions() {
 
 		if (!State.restore(true)) return; // don't do anything if state couldn't be restored
 		V.options = optionsData;
+
+		// Options are deliberately excluded from gameplay history, but they still
+		// need to survive a page refresh through SugarCube's session cache. State.restore
+		// above re-activates a *clone* of the current history frame, and the session is
+		// marshalled from _history rather than that clone, so the assignment above never
+		// reaches the serialised state on its own. Patch every frame, not just the active
+		// one, so the history controls don't step back onto stale options.
+		const session = State.getSessionState();
+		if (session?.history?.length > 0) {
+			session.history.forEach(frame => {
+				if (frame?.variables) frame.variables.options = clone(optionsData);
+			});
+			State.setSessionState(session);
+		}
+
 		State.show();
 
 		T.key = tmpKey;

@@ -3218,6 +3218,7 @@
 			sidebarStats: $sidebarStats && ["disabled", "limited", "all"].includes($sidebarStats) ? $sidebarStats : "disabled",
 			sidebarTime: $sidebarTime && ["disabled", "top", "bottom"].includes($sidebarTime) ? $sidebarTime : "disabled",
 			combatControls: $combatControls !== undefined ? $combatControls : "radio",
+			mainPassageVisualLayout: "single",
 			targetYourself: $targetYourself !== undefined ? $targetYourself : false,
 			scrollRemember: $scroll_remember !== undefined ? $scroll_remember : false,
 			mapMovement: $map.movement !== undefined ? $map.movement : true,
@@ -5584,6 +5585,9 @@
 
 	<<if $options.clothingCaption is undefined>>
 		<<set $options.clothingCaption to true>>
+	<</if>>
+	<<if $options.mainPassageVisualLayout isnot "single" and $options.mainPassageVisualLayout isnot "split">>
+		<<set $options.mainPassageVisualLayout to "single">>
 	<</if>>
 
 	<<if $frozenKeys isnot undefined>>

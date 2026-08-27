@@ -1,0 +1,18 @@
+{
+  "canvas": {"width": 256, "height": 128},
+  "layers": [
+    {"name": "new-mark", "new": true, "size": [256, 128]}
+  ],
+  "edits": [
+    {"op": "rect", "layer": "new-mark", "box": [118, 18, 138, 22], "colour": "#b0231cff"},
+    {"op": "rect", "layer": "new-mark", "box": [122, 14, 134, 26], "colour": "#fd6064ff"},
+    {"op": "pixel", "layer": "new-mark", "x": 128, "y": 13, "colour": "#fec7c8ff"}
+  ],
+  "output": "output/new-mark.png",
+  "inspection_dir": "output/new-sprite-inspection",
+  "inspection_scale": 8,
+  "grid_layer": "new-mark",
+  "exports": [
+    {"layer": "new-mark", "path": "output/new-mark-layer.png", "mode": "RGBA"}
+  ]
+}

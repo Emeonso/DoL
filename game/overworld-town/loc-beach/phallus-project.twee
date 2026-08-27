@@ -925,26 +925,11 @@ You approach the <<person>>. <<He>> looks up with a friendly smile. "Hey there."
 <br><br>
 Heads turn in your direction across the beach. You make a hasty retreat, you face burning. <<ggstress>><<stress 12>>
 <br><br>
-<<investigateicon>><<link [[Look for someone else (0:15)|Beach Phallus]]>><<endevent>><<passeif $molestationstart is 1>>
-	<<set $molestationstart to 0>>
-	<<controlloss>>
-	<<violence 1>>
-	<<neutral 1>>
-	<<molested>>
-<<maninit>>
-<</link>>
-<<effectsman>>
-<<alarmstate>>
-<<man>>
-<<stateman>>
-<br><br>
-<<actionsman>>
+<<investigateicon>><<link [[Look for someone else (0:15)|Beach Phallus]]>><<endevent>><<pass 15>><</link>>
+<br>
+<<beachicon>><<link [[Stop|Beach]]>><<pass 10>><<endevent>><</link>>
+<br>
 
-<<if _combatend>>
-	<span id="next"><<link [[Next|Chalets Work One Sex Finish]]>><</link>></span><<nexttext>>
-<<else>>
-	<span id="next"><<link [[Next|Chalets Work One Sex]]>><</link>></span><<nexttext>>
-<</if>>
 :: Beach Phallus Old
 
 <<location "beach">><<effects>>

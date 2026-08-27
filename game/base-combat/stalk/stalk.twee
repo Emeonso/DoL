@@ -1438,7 +1438,7 @@
 	/* 'pursuit' = NPC stole clothes and is running away from player. 'chased' = NPC running from player for other reason. */
 	<<if $options.images is 1>>
 		<br><br>
-		<div class="div_stalk">
+		<div class="div_stalk main-passage-visual" data-main-passage-visual>
 			/* Tiles */
 			<<switch $location>>
 				<<case "park" "forest" "lake" "farm" "meadow" "moor" "bog">>

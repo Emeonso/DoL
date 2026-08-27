@@ -516,7 +516,6 @@ You take your leave and let the <<person>> finish setting up <<his>> stall.
 		</div>
 
 		<<gifticon "balloons">><<link "Browse items">><<replace "#clothingShop-div">><<HandheldShop>><</replace>><<set $phase to 0>><</link>>
-		<<run setTimeout(() => linkifyDivs('.button-back-to-shop'), 0)>>
 		<<if ndef $popcorn>><<set $popcorn to 0>><</if>>
 		<<if ndef $daily.ex.popcorn>><<set $daily.ex.popcorn to 0>><</if>>
 		<<if $popcorn gte 3>>

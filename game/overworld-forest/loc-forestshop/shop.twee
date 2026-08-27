@@ -99,7 +99,6 @@
 		<br>
 	<</if>>
 	<br>
-	<<run setTimeout(() => linkifyDivs('.button-back-to-shop'), 0)>>
 
 	<<if $tryOn.value isnot 0>>
 		<<icon "hanger.png">><<link "Return clothes">><<clothingReset>>

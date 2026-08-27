@@ -1,0 +1,91 @@
+{
+  "recipe": "devTools\\sprite-workbench-demo\\angel_wings_fresh_no_inputs.json",
+  "canvas": {
+    "width": 256,
+    "height": 128
+  },
+  "layers": [
+    {
+      "name": "fresh-angel-wings",
+      "path": "<new-layer>",
+      "size": [
+        256,
+        128
+      ],
+      "x": 0,
+      "y": 0,
+      "opacity": 1.0
+    },
+    {
+      "name": "procedural-body-guide",
+      "path": "<new-layer>",
+      "size": [
+        256,
+        128
+      ],
+      "x": 0,
+      "y": 0,
+      "opacity": 1.0
+    }
+  ],
+  "edits": 42,
+  "edit_operation_pixel_counts": [
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    2244,
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    7,
+    3,
+    2244,
+    342,
+    6,
+    3,
+    3,
+    4,
+    4,
+    342,
+    6,
+    3,
+    3,
+    4,
+    4
+  ],
+  "composite_nontransparent_bounds": [
+    20,
+    24,
+    236,
+    107
+  ],
+  "grid_layer": "fresh-angel-wings",
+  "outputs": [
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\angel-wings-fresh-inspection\\composite.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\angel-wings-fresh-game-ready.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\angel-wings-fresh-inspection\\composite-8x.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\angel-wings-fresh-inspection\\layers-contact-sheet.png",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\angel-wings-fresh-inspection\\fresh-angel-wings-pixel-grid.txt",
+    "C:\\Users\\bjorn\\Documents\\GitHub\\DoL\\devTools\\sprite-workbench-demo\\output\\angel-wings-fresh-inspection\\report.json"
+  ]
+}

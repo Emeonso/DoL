@@ -18,7 +18,7 @@
 	<</if>>
 	<<set $settings to {}>>
 	<<set $options to {
-		neverNudeMenus: _globalGeneralDefaults.neverNudeMenus or false,
+		neverNudeMenus: false,
 		autosaveDisabled: false,
 		showCaptionText: true,
 		showSidebarEffects: true,
@@ -26,12 +26,13 @@
 		sidebarStats: "all",
 		sidebarTime: "top",
 		combatControls: "radio",
+		mainPassageVisualLayout: "single",
 		targetYourself: false,
 		scrollRemember: false,
-		mapMovement: _globalGeneralDefaults.mapMovement or true,
-		mapLegacy: _globalGeneralDefaults.mapLegacy or false,
-		mapMarkers: _globalGeneralDefaults.mapMarkers or false,
-		mapTop: _globalGeneralDefaults.mapTop or false,
+		mapMovement: true,
+		mapLegacy: false,
+		mapMarkers: false,
+		mapTop: false,
 		images: 1,
 		combatImages: 1,
 		bodywritingImages: true,
@@ -70,17 +71,17 @@
 		showCombatTools: false,
 		pepperSprayDisplay: "sprays",
 		condomsDisplay: "standard",
-		closeButtonMobile: _globalGeneralDefaults.closeButtonMobile or false,
+		closeButtonMobile: false,
 		zoom: 100,
-		numberify_enabled: _globalGeneralDefaults.numberify_enabled or 1,
-		timestyle: _globalGeneralDefaults.timestyle or "military",
+		numberify_enabled: 1,
+		timestyle: "military",
 		tipdisable: "f",
-		passageCount: _globalGeneralDefaults.passageCount or "disabled",
-		playtime: _globalGeneralDefaults.playtime or false,
+		passageCount: "disabled",
+		playtime: false,
 		traitOverlayFormat: "table",
 		debugdisable: "t",
 		theme: _globalThemeDefaults.theme,
-		dateFormat: _globalGeneralDefaults.dateFormat or "en-GB",
+		dateFormat: "en-GB",
 		passageMaxWidth: _globalThemeDefaults.passageMaxWidth,
 		passageLineHeight: _globalThemeDefaults.passageLineHeight,
 		overlayLineHeight: _globalThemeDefaults.overlayLineHeight,
@@ -91,9 +92,13 @@
 		font: _globalThemeDefaults.font,
 		weatherUpdate: true,
 		reflections: true,
-		fahrenheit: _globalGeneralDefaults.fahrenheit or false,
-		clothingReplacementWarning: _globalGeneralDefaults.clothingReplacementWarning or false,
+		fahrenheit: false,
+		clothingReplacementWarning: false,
 	}>>
+	/* Apply the player's saved global defaults over the literal above. Done as a
+	validated pass rather than inline `or` fallbacks, which treated a stored false
+	as "not set" and silently restored the built-in default. */
+	<<run applyGlobalDefaultOptions(V.options, T.globalGeneralDefaults)>>
 	<<setFont>>
 
 	<<if StartConfig.enableImages is false>>
