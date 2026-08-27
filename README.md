@@ -10,6 +10,9 @@ built into the playable HTML file.
 > sexual content. This repository contains its full source, including
 > content of that nature.
 
+See [`TODO.md`](TODO.md) for queued-up future work, and
+[`PATCHLIST.md`](PATCHLIST.md) for a log of source changes made on this branch.
+
 ## Repository layout
 
 - `game/` — game source, organized by responsibility rather than by screen:
